@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Pluma",
+    "slug": "pluma",
+    "version": "0.1.0",
+    "newArchEnabled": true,
+    "orientation": "portrait",
+    "scheme": "pluma",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#ffffff" },
+    "android": {
+      "package": "app.pluma.hackathon",
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#ffffff" },
+      "permissions": ["android.permission.CAMERA", "android.permission.INTERNET"]
+    },
+    "plugins": [
+      ["expo-build-properties", { "android": { "minSdkVersion": 31, "useLegacyPackaging": true } }],
+      ["expo-camera", { "cameraPermission": "Pluma uses the camera to scan tickets and invites." }]
+    ]
+  }
+}

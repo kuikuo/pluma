@@ -114,6 +114,22 @@ From the inventory's 40 MVP features, grouped. Each line is a requirement.
 6. Themes, recurring events/cloning, feedback surveys, chat.
 7. Email/SMS/push bridges (optional, operator-run, outside the zero-infra core).
 
+## 4a. Hackathon cut (one day, Android APK only)
+Built: core library (§3.1–3.4 rules, tested on Node and Bare), CLI demo, Android app with create,
+invite (share/QR/paste/clipboard/deep link), RSVP, approvals, privacy modes, capacity-overflow
+cancellation, dynamic-QR ticket, offline scanner, co-host and door-helper pairing by QR, blasts.
+
+Deferred from MVP: local reminder notifications, `.ics` export, CSV export, ticket types, custom
+questions, the static invite web page, multi-device/backup, and the Android "Keep my event online"
+foreground service (Android allows an app to keep networking alive with a persistent notification
+and a battery-optimisation exemption; iOS has no equivalent). Holds are not implemented separately:
+with free tickets, capacity is enforced at registration time by the apply function, which already
+prevents overselling. Holds become necessary with payments.
+
+Availability for the hackathon: guests re-share the event while their app is open; co-hosts hold
+the signing key so any online co-host can confirm guests; an always-on computer can run the CLI as a
+co-host.
+
 ## 5. Success metrics
 - Link tap → ticket in hand, median, new guest on phone: **< 60 s** (install excluded), < 2.5 min
   including install.

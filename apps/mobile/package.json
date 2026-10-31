@@ -1,0 +1,31 @@
+{
+  "private": true,
+  "name": "pluma-mobile",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "bundle": "bare-pack --preset android --linked --base ../.. -f bundle.cjs --out app/worklet.bundle.js backend/worklet.js",
+    "link:android": "bare-link --host android-arm64 --host android-x64 --out node_modules/react-native-bare-kit/android/src/main/addons backend/worklet.js",
+    "prebuild": "expo prebuild --platform android --no-install",
+    "apk": "npm run bundle && npm run link:android && cd android && ./gradlew assembleRelease",
+    "postinstall": "npm run link:android"
+  },
+  "dependencies": {
+    "b4a": "^1.6.7",
+    "babel-preset-expo": "~55.0.8",
+    "expo": "~55.0.23",
+    "expo-build-properties": "~55.0.9",
+    "expo-camera": "~55.0.23",
+    "expo-clipboard": "~55.0.17",
+    "expo-file-system": "~55.0.26",
+    "react": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-bare-kit": "^0.15.0",
+    "react-native-qrcode-svg": "^6.3.49",
+    "react-native-svg": "15.15.3"
+  },
+  "devDependencies": {
+    "bare-link": "^4.0.1",
+    "bare-pack": "^3.0.2"
+  }
+}

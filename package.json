@@ -1,7 +1,10 @@
 {
   "name": "pluma",
   "private": true,
-  "workspaces": ["packages/*", "apps/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/cli"
+  ],
   "scripts": {
     "test": "npm test --workspaces --if-present"
   }
