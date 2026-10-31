@@ -62,7 +62,22 @@ const STATUS_TEXT = {
   full: 'This event is full',
   closed: 'Registration is closed',
   cancelled: "You're not going",
+  revoked: 'Your spot was cancelled by the host',
   none: ''
+}
+
+const HOST_STATUS = {
+  approved: 'going',
+  pending: 'waiting for you',
+  declined: 'declined',
+  full: 'asked when full',
+  closed: 'asked after closing',
+  cancelled: 'cancelled',
+  revoked: 'cancelled by host'
+}
+
+function listNames(names) {
+  return names.length <= 1 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
 }
 
 // ---------- screens ----------
@@ -125,43 +140,50 @@ function Home({ go }) {
   )
 }
 
-function Create({ go, back }) {
-  const tomorrow = new Date(Date.now() + 86400000)
-  tomorrow.setHours(18, 0, 0, 0)
+// Create a new event, or edit one when `info` (the current event) is given.
+function Create({ go, back, link, info }) {
+  const editing = !!info
   const pad = (n) => String(n).padStart(2, '0')
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState(`${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`)
-  const [time, setTime] = useState('18:00')
-  const [location, setLocation] = useState('')
-  const [description, setDescription] = useState('')
-  const [capacity, setCapacity] = useState('')
-  const [requireApproval, setRequireApproval] = useState(false)
-  const [mode, setMode] = useState('private')
+  const initial = info && info.start ? new Date(info.start) : (() => { const t = new Date(Date.now() + 86400000); t.setHours(18, 0, 0, 0); return t })()
+  const [title, setTitle] = useState(editing ? info.title || '' : '')
+  const [date, setDate] = useState(`${initial.getFullYear()}-${pad(initial.getMonth() + 1)}-${pad(initial.getDate())}`)
+  const [time, setTime] = useState(`${pad(initial.getHours())}:${pad(initial.getMinutes())}`)
+  const [location, setLocation] = useState(editing ? info.location || '' : '')
+  const [description, setDescription] = useState(editing ? info.description || '' : '')
+  const [capacity, setCapacity] = useState(editing && info.capacity !== null ? String(info.capacity) : '')
+  const [requireApproval, setRequireApproval] = useState(editing ? !!info.requireApproval : false)
+  const [mode, setMode] = useState(editing ? info.guestListMode : 'private')
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => { call('profile').then((p) => setName(p.name)) }, [])
+  useEffect(() => { if (!editing) call('profile').then((p) => setName(p.name)) }, [editing])
 
   async function publish() {
     if (!title.trim()) return Alert.alert('Give your event a name')
     const start = new Date(`${date}T${time}:00`)
     if (isNaN(start)) return Alert.alert('Check the date and time', 'Use YYYY-MM-DD and HH:MM')
     setBusy(true)
+    const fields = {
+      title: title.trim(),
+      start: start.toISOString(),
+      timezone: editing ? info.timezone : Intl.DateTimeFormat().resolvedOptions().timeZone,
+      location: location.trim(),
+      description: description.trim(),
+      capacity: capacity ? Number(capacity) : null,
+      requireApproval,
+      guestListMode: mode
+    }
     try {
+      if (editing) {
+        await call('update', link, fields)
+        back()
+        return
+      }
       if (name.trim()) await call('setProfile', { name: name.trim() })
-      const link = await call('createEvent', {
-        title: title.trim(),
-        start: start.toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        location: location.trim(),
-        description: description.trim(),
-        capacity: capacity ? Number(capacity) : null,
-        requireApproval,
-        guestListMode: mode
-      })
-      go('event', { link, justCreated: true })
+      const newLink = await call('createEvent', fields)
+      go('event', { link: newLink, justCreated: true })
     } catch (err) {
-      Alert.alert('Could not create the event', err.message)
+      Alert.alert(editing ? 'Could not save changes' : 'Could not create the event', err.message)
       setBusy(false)
     }
   }
@@ -170,7 +192,7 @@ function Create({ go, back }) {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
         <Pressable onPress={back}><Text style={s.back}>‹ Back</Text></Pressable>
-        <Text style={s.h1}>New event</Text>
+        <Text style={s.h1}>{editing ? 'Edit event' : 'New event'}</Text>
         <Field label="Event name" value={title} onChangeText={setTitle} placeholder="Hack night" />
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <View style={{ flex: 3 }}><Field label="Date" value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" /></View>
@@ -186,8 +208,9 @@ function Create({ go, back }) {
         <Text style={s.label}>Who can see the guest list?</Text>
         <Segmented value={mode} onChange={setMode} options={[['private', 'Only hosts'], ['selective', 'Guests (I pick)'], ['public', 'All guests']]} />
         <View style={{ height: 14 }} />
-        <Field label="Your name (shown as host)" value={name} onChangeText={setName} placeholder="Your name" />
-        <Button title={busy ? 'Publishing…' : 'Publish'} onPress={publish} disabled={busy} />
+        {!editing && <Field label="Your name (shown as host)" value={name} onChangeText={setName} placeholder="Your name" />}
+        {editing && <Text style={[s.muted, { marginBottom: 12 }]}>Guests see changes the next time their app syncs. Lowering capacity never cancels anyone automatically.</Text>}
+        <Button title={busy ? (editing ? 'Saving…' : 'Publishing…') : (editing ? 'Save changes' : 'Publish')} onPress={publish} disabled={busy} />
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -296,15 +319,15 @@ function HostView({ d, link, refresh, go }) {
         <Text style={s.muted}>
           {counts.approved || 0} going{d.info.capacity !== null ? ` of ${d.info.capacity}` : ''} · {counts.pending || 0} waiting · {d.checkins} checked in
         </Text>
-        {over.size > 0 && <Text style={[s.status, { color: '#b42318' }]}>{over.size} over capacity — highlighted below. Cancel tickets to fit.</Text>}
-        {d.duplicates > 0 && <Text style={[s.status, { color: '#b42318' }]}>{d.duplicates} ticket(s) were scanned at two doors. Worth a look.</Text>}
+        {over.size > 0 && <Text style={[s.status, { color: '#b42318' }]}>{over.size} {over.size === 1 ? 'guest' : 'guests'} over capacity. The most recent sign-ups are highlighted; cancel tickets to fit.</Text>}
+        {d.duplicates.length > 0 && <Text style={[s.status, { color: '#b42318' }]}>{listNames(d.duplicates)} {d.duplicates.length === 1 ? 'was' : 'were'} checked in at two doors. Worth a look.</Text>}
         <View style={{ height: 6 }} />
         {guests.length === 0 && <Text style={s.muted}>No one yet. Share the invite!</Text>}
         {guests.map((g) => (
           <View key={g.id} style={[s.guest, over.has(g.id) && { backgroundColor: '#fff1f0' }]}>
             <View style={{ flex: 1 }}>
               <Text style={s.body}>{g.name || 'Unknown'}{g.hidden ? ' (hidden)' : ''}</Text>
-              <Text style={s.muted}>{g.status}{g.email ? ` · ${g.email}` : ''}</Text>
+              <Text style={s.muted}>{HOST_STATUS[g.status] || g.status}{g.email ? ` · ${g.email}` : ''}</Text>
             </View>
             {g.status === 'pending' || g.status === 'full' ? (
               <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -338,6 +361,8 @@ function HostView({ d, link, refresh, go }) {
       </View>
 
       <Button title="Check in guests" onPress={() => go('scanTickets', { link })} />
+      <View style={{ height: 10 }} />
+      <Button title="Edit event details" kind="secondary" onPress={() => go('edit', { link, info: d.info })} />
       <View style={{ height: 10 }} />
       {d.role === 'organiser' && <Button title="Add a co-host or door helper" kind="secondary" onPress={() => go('scanHelper', { link })} />}
       <View style={{ height: 10 }} />
@@ -526,6 +551,7 @@ export default function App() {
   let body
   if (screen.name === 'home') body = <Home go={go} />
   else if (screen.name === 'create') body = <Create go={(n, p) => setStack([{ name: 'home' }, { name: n, ...p }])} back={back} />
+  else if (screen.name === 'edit') body = <Create link={screen.link} info={screen.info} back={back} go={go} />
   else if (screen.name === 'event') body = <Event key={screen.link} link={screen.link} justCreated={screen.justCreated} back={back} go={go} />
   else if (screen.name === 'scanInvite') {
     body = <Scanner title="Scan an invite" hint="Point at the host’s invite code" back={back} onCode={async (data) => {

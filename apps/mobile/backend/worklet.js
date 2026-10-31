@@ -35,6 +35,20 @@ async function summary(ev) {
   return { link: ev.link, title: info.title || 'Loading…', start: info.start || null, cancelled: !!info.cancelled, role, status: mine.status }
 }
 
+// Names of guests whose ticket was scanned at more than one door.
+async function duplicateNames(ev) {
+  const dups = await ev.duplicateScans()
+  if (dups.length === 0) return []
+  const guests = await ev.guests()
+  const names = []
+  for (const d of dups) {
+    const t = await ev._get('tickets/' + d.id)
+    const g = t && guests.find((x) => x.id === t.guest)
+    names.push(g && g.name ? g.name : 'A guest')
+  }
+  return names
+}
+
 const methods = {
   async profile() {
     await opening
@@ -79,7 +93,7 @@ const methods = {
       blasts: (await ev.blasts()).map((b) => ({ body: b.body, at: b.at })),
       guests: manager ? await ev.guests() : null,
       overCapacity: manager ? (await ev.overCapacity()).map((g) => g.id) : [],
-      duplicates: manager ? (await ev.duplicateScans()).length : 0,
+      duplicates: manager ? await duplicateNames(ev) : [],
       checkins: manager || role === 'scanner' ? (await ev.checkins()).length : 0,
       joinRequest: ev.joinRequest
     }

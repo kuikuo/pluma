@@ -151,3 +151,20 @@ test('guests and strangers cannot perform host actions', async (t) => {
   t.is((await ev.guests())[0].status, 'pending')
   t.is((await ev.checkins()).length, 0)
 })
+
+test('host cancelling a ticket marks it revoked with a reason, and the seat frees up', async (t) => {
+  const [org, a, b] = await devices(t, 3)
+  const ev = await org.createEvent({ ...EVENT, capacity: 1 })
+  link(org, a); link(org, b)
+  const ga = await guestJoins(ev, a, 'Ada')
+  await eventually(async () => (await ga.myStatus()).ticket)
+
+  await ev.revokeTicket(ga.me, 'Event capacity was reduced')
+  const s = await eventually(async () => { const s = await ga.myStatus(); return s.status === 'revoked' && s })
+  t.is(s.message, 'Event capacity was reduced')
+  t.is(s.ticket, null)
+
+  const gb = await guestJoins(ev, b, 'Bo')
+  await eventually(async () => (await gb.myStatus()).status === 'approved')
+  t.pass('the freed seat goes to the next guest')
+})

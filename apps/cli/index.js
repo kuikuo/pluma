@@ -24,6 +24,7 @@ const HELP = `
   scan <code>                            check in a ticket code (works offline)
   dupes                                  duplicate scans
   blast <message>                        message approved guests
+  updates                                messages from the hosts
   events                                 my events
   quit`
 
@@ -81,6 +82,7 @@ async function main() {
         case 'scan': need(); { const r = await ev.scan(rest[0]); console.log(r.ok ? `✅ ${r.name || 'Valid ticket'}` : `❌ ${r.reason}${r.name ? ' — ' + r.name : ''}`) } break
         case 'dupes': need(); console.log(await ev.duplicateScans()); break
         case 'blast': need(); await ev.blast(rest.join(' ')); console.log('Sent.'); break
+        case 'updates': need(); { const b = await ev.blasts(); console.log(b.map((x) => '• ' + x.body).join('\n') || '(no updates)') } break
         case 'events': console.log((await pluma.myEvents()).join('\n') || '(none)'); break
         case 'quit': case 'exit': rl.close(); break
         default: console.log('Unknown command. Type "help".')

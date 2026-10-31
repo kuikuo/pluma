@@ -7,7 +7,7 @@
 //   keys                  { ticketKey, boxKey } host public keys
 //   hosts/<writer>        { role: organiser|manager|scanner, name, visible, boxKey }
 //   secrets/<writer>      sealed host secrets for that co-host
-//   guests/<writer>       { status, holderKey, sealed, at, message }
+//   guests/<writer>       { status: approved|pending|declined|full|closed|cancelled|revoked, holderKey, sealed, at, message }
 //   hidden/<writer>       true when a host hid the guest (selective mode)
 //   parked/decision|ticket/<writer>  host records that arrived before the RSVP
 //   tickets/<ticketId>    { guest, ticket }
@@ -139,7 +139,7 @@ async function applyOne(v, writer, node, view, host, eventKey) {
       await view.put('revoked/' + v.ticketId, { reason: isStr(v.reason, 200) ? v.reason : 'revoked' })
       const g = await get(view, 'guests/' + t.guest)
       if (g && g.status === 'approved') {
-        await view.put('guests/' + t.guest, { ...g, status: 'declined', message: isStr(v.reason, 200) ? v.reason : null })
+        await view.put('guests/' + t.guest, { ...g, status: 'revoked', message: isStr(v.reason, 200) ? v.reason : null })
         await view.put('meta/approved', (await get(view, 'meta/approved')) - 1)
       }
       return
