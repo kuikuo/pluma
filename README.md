@@ -137,6 +137,10 @@ people's data. Full results: [`luma-feature-inventory.md`](luma-feature-inventor
   created an event, approved guests, sent messages, cancelled tickets over capacity, added a door
   helper by QR, scanned tickets with the camera (including in airplane mode), and flagged a ticket
   scanned at two doors after they reconnected.
+- **Desktop app**: tested on Linux, both from source and as the packaged AppImage, as an organiser
+  (create event with ticket types and questions) and as a guest (RSVP as Speaker with answers to a
+  host on another device). The Windows and macOS installers are built by GitHub Actions from the same
+  code; we could not run them ourselves on the day.
 
 ## How it works (short version)
 
