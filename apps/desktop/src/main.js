@@ -153,8 +153,17 @@ app.whenReady().then(async () => {
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https:\/\//.test(url)) shell.openExternal(url); return { action: 'deny' } })
   await win.loadFile(path.join(__dirname, 'index.html'))
   handleUrl(process.argv.find((a) => a.startsWith('pluma://')))
+  // Test hook (development only): run a script of UI steps, then save a screenshot.
   if (process.env.PLUMA_SCREENSHOT) {
-    setTimeout(async () => { fs.writeFileSync(process.env.PLUMA_SCREENSHOT, (await win.webContents.capturePage()).toPNG()); app.quit() }, 6000)
+    const steps = process.env.PLUMA_STEPS ? require(path.resolve(process.env.PLUMA_STEPS)) : []
+    setTimeout(async () => {
+      for (const step of steps) {
+        try { await win.webContents.executeJavaScript(step.js) } catch (err) { console.error('step failed', step.js, err.message) }
+        await new Promise((r) => setTimeout(r, step.wait || 1500))
+      }
+      fs.writeFileSync(process.env.PLUMA_SCREENSHOT, (await win.webContents.capturePage()).toPNG())
+      app.quit()
+    }, 4000)
   }
 })
 

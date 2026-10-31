@@ -21,6 +21,7 @@ const SCAN_REASONS = {
 let stack = [{ name: 'home' }]
 let timers = []
 let cleanups = []
+let renderId = 0 // screens only paint while they are still current
 let stopCamera = null
 
 function toast(msg) {
@@ -46,6 +47,7 @@ function render() {
   cleanups.forEach((f) => f()); cleanups = []
   if (stopCamera) { stopCamera(); stopCamera = null }
   const s = stack[stack.length - 1]
+  renderId++
   window.scrollTo(0, 0)
   ;({ home: Home, create: Create, event: Event, scan: Scan, addHelper: AddHelper }[s.name])(s).catch((e) => { $app.innerHTML = `<p class="red">${esc(e.message)}</p>` })
 }
@@ -55,9 +57,11 @@ const onAll = (sel, ev, fn) => $app.querySelectorAll(sel).forEach((el) => el.add
 
 // ---------- home ----------
 async function Home() {
+  const id = renderId
   const draw = async () => {
     const events = await call('events')
     const peers = await call('peers')
+    if (id !== renderId) return
     $app.innerHTML = `
       <h1>Pluma</h1>
       <div class="muted">Events without accounts. Tickets that work offline. Free, with no servers.</div>
@@ -174,11 +178,13 @@ async function Create({ link, info }) {
 
 // ---------- event ----------
 async function Event({ link }) {
+  const id = renderId
   let rsvping = false
   let blastDraft = ''
   const draw = async () => {
     if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && $app.contains(document.activeElement)) return
     const d = await call('detail', link)
+    if (id !== renderId) return
     if (!d.info) {
       $app.innerHTML = `<button class="back" id="back">‹ Events</button><div class="card center"><h3>Finding the event…</h3>
         <p class="muted">This works as soon as the host or another guest has Pluma open. You can leave this screen; it keeps trying.</p></div>`
@@ -191,6 +197,9 @@ async function Event({ link }) {
       return
     }
     const manager = d.role === 'organiser' || d.role === 'manager'
+    const body = manager ? await hostView(d) : d.role === 'scanner' ? '<button id="checkin" style="width:100%;margin-top:14px">Check in guests</button>' : await guestView(d, rsvping)
+    const helperQR = !manager && d.role !== 'scanner' ? await call('qr', 'pluma-join:' + JSON.stringify(d.joinRequest)) : ''
+    if (id !== renderId) return
     $app.innerHTML = `
       <button class="back" id="back">‹ Events</button>
       ${d.info.cancelled ? '<p class="red">This event has been cancelled.</p>' : ''}
@@ -200,9 +209,9 @@ async function Event({ link }) {
       ${d.hosts.length ? `<div class="muted">Hosted by ${esc(d.hosts.join(', '))}</div>` : ''}
       ${d.info.description ? `<p>${esc(d.info.description)}</p>` : ''}
       ${d.blasts.length ? `<div class="card"><h3>Updates from the host</h3>${d.blasts.slice().reverse().map((b) => `<div>• ${esc(b.body)}</div>`).join('')}</div>` : ''}
-      ${manager ? await hostView(d) : d.role === 'scanner' ? '<button id="checkin" style="width:100%;margin-top:14px">Check in guests</button>' : await guestView(d, rsvping)}
+      ${body}
       ${!manager && d.roster.length ? `<div class="card"><h3>Who’s going</h3><div>${esc(d.roster.join(', '))}</div></div>` : ''}
-      ${!manager && d.role !== 'scanner' ? `<details class="card"><summary class="muted">Helping run this event?</summary><p>Ask the organiser to scan this with “Add a co-host or door helper”.</p><img class="qr" src="${await call('qr', 'pluma-join:' + JSON.stringify(d.joinRequest))}" alt="Helper code"></details>` : ''}`
+      ${!manager && d.role !== 'scanner' ? `<details class="card"><summary class="muted">Helping run this event?</summary><p>Ask the organiser to scan this with “Add a co-host or door helper”.</p><img class="qr" src="${helperQR}" alt="Helper code"></details>` : ''}`
     on('#back', 'click', back)
     on('#checkin', 'click', () => go('scan', { mode: 'tickets', link }))
     on('#going', 'click', () => { rsvping = true; draw() })
