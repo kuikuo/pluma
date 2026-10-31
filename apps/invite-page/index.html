@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#5b3df5">
+  <title>You're invited · Pluma</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="brand" aria-label="Pluma">
+      <span class="logo" aria-hidden="true">P</span>
+      <span class="brand-name">Pluma</span>
+    </header>
+
+    <!-- Valid invite -->
+    <section id="invite" class="card" aria-labelledby="ev-title" hidden>
+      <p class="eyebrow" id="ev-eyebrow">You're invited</p>
+      <h1 id="ev-title">You're invited to an event on Pluma</h1>
+      <dl class="details">
+        <div id="row-when" hidden>
+          <dt>When</dt>
+          <dd><span id="ev-when"></span><span id="ev-tz" class="muted"></span></dd>
+        </div>
+        <div id="row-where" hidden>
+          <dt>Where</dt>
+          <dd id="ev-where"></dd>
+        </div>
+      </dl>
+      <p id="ev-host" class="host" hidden></p>
+
+      <div class="actions">
+        <a id="open-app" class="btn btn-primary" href="#">Get your ticket</a>
+        <a class="btn btn-secondary" href="./pluma.apk" download>Don't have Pluma? Download for Android</a>
+        <button id="copy" type="button" class="btn btn-ghost">Copy invite</button>
+        <p id="copy-note" class="note" role="status" aria-live="polite">Open Pluma after installing — it will find your invite.</p>
+      </div>
+    </section>
+
+    <!-- Invalid / incomplete link -->
+    <section id="invalid" class="card" aria-labelledby="bad-title" hidden>
+      <h1 id="bad-title">This invite link looks incomplete</h1>
+      <p>Part of the link may have been cut off when it was shared. Ask the organiser to send it again, or copy the whole link and open it here.</p>
+    </section>
+
+    <section id="qr-box" class="card qr" aria-labelledby="qr-title" hidden>
+      <h2 id="qr-title">Open on your phone</h2>
+      <p class="muted">Scan with your phone's camera to get your ticket there.</p>
+      <div id="qr" class="qr-img"></div>
+    </section>
+
+    <section class="why" aria-labelledby="why-title">
+      <h2 id="why-title">Why an app?</h2>
+      <p>No account. Your ticket works offline. Your details go only to the organiser.</p>
+    </section>
+
+    <footer class="foot">
+      <p>The event details live only in this link — this website never sees them.</p>
+      <p>Pluma is open source. QR code by <a href="vendor/LICENSE-qrcode-generator.txt">qrcode-generator</a> (MIT).</p>
+    </footer>
+  </main>
+
+  <script src="vendor/qrcode.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
