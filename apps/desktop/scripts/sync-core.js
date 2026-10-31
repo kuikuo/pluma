@@ -1,0 +1,10 @@
+// Copy packages/core into the app so installers are self-contained.
+const fs = require('fs')
+const path = require('path')
+const src = path.join(__dirname, '..', '..', '..', 'packages', 'core')
+const dst = path.join(__dirname, '..', 'core')
+fs.rmSync(dst, { recursive: true, force: true })
+fs.mkdirSync(dst, { recursive: true })
+fs.cpSync(path.join(src, 'index.js'), path.join(dst, 'index.js'))
+fs.cpSync(path.join(src, 'lib'), path.join(dst, 'lib'), { recursive: true })
+console.log('core synced')

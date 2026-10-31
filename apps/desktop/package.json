@@ -1,0 +1,85 @@
+{
+  "name": "pluma-desktop",
+  "productName": "Pluma",
+  "version": "0.1.0",
+  "description": "Event invites, RSVPs and offline check-in with no accounts or servers",
+  "license": "Apache-2.0",
+  "author": "Pluma authors",
+  "main": "src/main.js",
+  "scripts": {
+    "sync-core": "node scripts/sync-core.js",
+    "start": "npm run sync-core && electron .",
+    "dist": "npm run sync-core && electron-builder --publish never"
+  },
+  "build": {
+    "appId": "app.pluma.desktop",
+    "productName": "Pluma",
+    "files": [
+      "src/**",
+      "core/**",
+      "node_modules/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/*.node",
+      "**/prebuilds/**"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "identity": "-"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "runAfterFinish": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office"
+    },
+    "artifactName": "Pluma-${version}-${os}-${arch}.${ext}",
+    "protocols": [
+      {
+        "name": "Pluma invite",
+        "schemes": [
+          "pluma"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "autobase": "^7.28.2",
+    "b4a": "^1.9.0",
+    "compact-encoding": "^3.5.2",
+    "corestore": "^7.16.1",
+    "hyperbee": "^2.27.3",
+    "hypercore-crypto": "^3.7.0",
+    "hyperswarm": "^4.17.2",
+    "jsqr": "^1.4.0",
+    "protomux": "^3.13.0",
+    "protomux-wakeup": "^2.9.0",
+    "qrcode": "^1.5.4",
+    "sodium-universal": "^5.0.1"
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0"
+  }
+}
