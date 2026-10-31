@@ -13,7 +13,7 @@ Download from the [latest release](https://github.com/kuikuo/pluma/releases/late
 
 | Your device | Download | First launch |
 |---|---|---|
-| **Windows** | `Pluma-0.1.0-win-x64.exe` (installer) | Windows may say "Windows protected your PC": click **More info → Run anyway**, then follow the installer. |
+| **Windows** | `Pluma-0.1.0-win-x64.exe` (installer) | Windows may say "Windows protected your PC": click **More info → Run anyway**, then click **Yes** when it asks for permission (this lets other devices connect to Pluma through Windows Firewall) and follow the installer. |
 | **Mac (Apple Silicon)** | `Pluma-0.1.0-mac-arm64.dmg` | Open the .dmg and drag Pluma to Applications. The first time, macOS blocks it: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. |
 | **Mac (Intel)** | `Pluma-0.1.0-mac-x64.dmg` | Same as above. |
 | **Linux** | `Pluma-0.1.0-linux-x86_64.AppImage` | Right-click → Properties → allow executing as a program, then double-click. |
