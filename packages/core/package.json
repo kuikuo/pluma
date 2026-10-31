@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "test": "brittle-node test/*.js"
+    "test": "brittle-node test/*.js",
+    "test:bare": "brittle-bare test/*.js"
   },
   "dependencies": {
     "autobase": "^7.28.2",
     "b4a": "^1.9.0",
+    "bare-events": "^2.9.2",
     "compact-encoding": "^3.5.2",
     "corestore": "^7.16.1",
     "hyperbee": "^2.27.3",
@@ -18,7 +20,14 @@
     "sodium-universal": "^5.0.1"
   },
   "devDependencies": {
+    "bare": "^1.36.2",
     "brittle": "^4.5.0",
     "hyperdht": "^6.35.0"
+  },
+  "imports": {
+    "events": {
+      "bare": "bare-events",
+      "default": "events"
+    }
   }
 }
