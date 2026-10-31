@@ -1,0 +1,7 @@
+{
+  "name": "@pluma/cli",
+  "version": "0.0.1",
+  "private": true,
+  "bin": { "pluma": "index.js" },
+  "dependencies": { "@pluma/core": "*" }
+}
