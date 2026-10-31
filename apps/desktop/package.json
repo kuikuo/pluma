@@ -46,7 +46,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "runAfterFinish": true
+      "runAfterFinish": true,
+      "perMachine": true,
+      "include": "build/installer.nsh"
     },
     "linux": {
       "target": [
