@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator, Alert, AppState, KeyboardAvoidingView, Linking, Platform, Pressable,
+  ActivityIndicator, Alert, AppState, BackHandler, KeyboardAvoidingView, Linking, Platform, Pressable,
   ScrollView, Share, StatusBar, StyleSheet, Switch, Text, TextInput, View
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
@@ -490,6 +490,18 @@ export default function App() {
   const go = (name, params = {}) => setStack((st) => [...st, { name, ...params }])
   const back = () => setStack((st) => (st.length > 1 ? st.slice(0, -1) : st))
   const asked = useRef(false)
+  const depth = useRef(1)
+  depth.current = stack.length
+
+  // Android's Back button steps back through screens; it leaves the app only from home.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (depth.current <= 1) return false
+      setStack((st) => st.slice(0, -1))
+      return true
+    })
+    return () => sub.remove()
+  }, [])
 
   // Invites: deep links, plus the clipboard on first open (how links survive an app install).
   useEffect(() => {
