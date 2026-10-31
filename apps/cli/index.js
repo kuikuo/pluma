@@ -9,6 +9,7 @@ const offline = args.includes('--offline') // no networking: simulates a device 
 
 const HELP = `
   create <title> [capacity] [approval]   create an event (approval = "yes" to require it)
+  demo                                   create a sample event (ticket types, questions, starts in 70 min)
   open <link>                            open an event link
   info                                   show the current event
   rsvp <name> [email]                    register for the current event
@@ -65,12 +66,32 @@ async function main() {
           console.log('Created. Share this link:\n' + ev.link)
           break
         }
+        case 'demo': {
+          use(await pluma.createEvent({
+            title: 'Pluma Demo Night',
+            start: new Date(Date.now() + 70 * 60_000).toISOString(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            location: 'NUS School of Computing, COM3',
+            description: 'Lightning talks and pizza. Bring a friend!',
+            capacity: 50,
+            ticketTypes: [
+              { id: 'ga', name: 'General', capacity: 1 },
+              { id: 'speaker', name: 'Speaker', capacity: 5, requireApproval: true }
+            ],
+            questions: [
+              { id: 'diet', label: 'Dietary needs?', kind: 'choice', options: ['None', 'Vegetarian', 'Halal'] },
+              { id: 'coc', label: 'I agree to the code of conduct', kind: 'agree', required: true }
+            ]
+          }, { name: 'CLI host' }))
+          console.log('Created. Share this link:\n' + ev.link)
+          break
+        }
         case 'open': use(await pluma.openEvent(rest[0])); console.log('Opened; syncing…'); break
         case 'info': need(); console.log(await ev.info(), 'my role:', await ev.role()); break
         case 'rsvp': need(); await ev.rsvp({ name: rest[0], email: rest[1] || null }); console.log('Requested.'); break
         case 'status': need(); { const s = await ev.myStatus(); console.log(s.status, s.message || '', s.ticket ? '(ticket ready — type qr)' : '') } break
         case 'qr': need(); console.log((await ev.ticketQR()) || 'No ticket yet'); break
-        case 'guests': need(); for (const g of await ev.guests()) console.log(g.id.slice(0, 8), g.status.padEnd(9), g.hidden ? 'hidden' : '      ', g.name, g.email || ''); break
+        case 'guests': need(); for (const g of await ev.guests()) console.log(g.id.slice(0, 8), g.status.padEnd(9), (g.ticketType || '').padEnd(8), g.hidden ? 'hidden' : '      ', g.name, g.email || '', g.answers && Object.keys(g.answers).length ? JSON.stringify(g.answers) : ''); break
         case 'approve': need(); await ev.approve(await findGuest(rest[0])); console.log('Approved.'); break
         case 'decline': need(); await ev.decline(await findGuest(rest[0]), rest.slice(1).join(' ') || undefined); console.log('Declined.'); break
         case 'mode': need(); await ev.setGuestListMode(rest[0]); console.log('Guest list:', rest[0]); break
