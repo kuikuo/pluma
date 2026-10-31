@@ -6,6 +6,8 @@ const sodium = require('sodium-universal')
 const ProtomuxWakeup = require('protomux-wakeup')
 const PlumaEvent = require('./lib/event')
 const ticket = require('./lib/ticket')
+const { toICS, toCSV } = require('./lib/export')
+const { RULES_VERSION } = require('./lib/apply')
 
 class Pluma {
   constructor(storage, { bootstrap, swarm = true } = {}) {
@@ -30,9 +32,9 @@ class Pluma {
     await this.local.ready()
   }
 
-  async createEvent(event, { name = '' } = {}) {
+  async createEvent(event, { name = '', rules } = {}) {
     const ns = b4a.toString(randomBytes(16), 'hex')
-    const ev = new PlumaEvent(this, { ns, create: { event, name } })
+    const ev = new PlumaEvent(this, { ns, create: { event, name, rules } })
     await ev.ready()
     await this.local.put('events/' + b4a.toString(ev.key, 'hex'), { ns, created: true })
     return this._track(ev)
@@ -83,4 +85,4 @@ function randomBytes(n) {
   return b
 }
 
-module.exports = { Pluma, PlumaEvent, ticket, parseLink }
+module.exports = { Pluma, PlumaEvent, ticket, parseLink, toICS, toCSV, RULES_VERSION }

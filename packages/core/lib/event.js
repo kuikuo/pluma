@@ -3,7 +3,7 @@ const Autobase = require('autobase')
 const Hyperbee = require('hyperbee')
 const b4a = require('b4a')
 const { hash, signKeyPair, boxKeyPair, seal, unseal } = require('./crypto')
-const { createApply, idFor } = require('./apply')
+const { createApply, idFor, RULES_VERSION } = require('./apply')
 const T = require('./ticket')
 
 const hex = (b) => b4a.toString(b, 'hex')
@@ -43,6 +43,7 @@ class PlumaEvent extends EventEmitter {
       const hs = this._hostKeys(this._ownHostSeed)
       await this.base.append({
         type: 'init',
+        rules: this._create.rules || RULES_VERSION,
         event: this._create.event,
         name: this._create.name || '',
         ticketKey: hex(hs.ticket.publicKey),
@@ -109,6 +110,24 @@ class PlumaEvent extends EventEmitter {
     return this._get('event')
   }
 
+  // True when the event was made by a newer Pluma whose rules this one doesn't know.
+  async needsUpdate() {
+    const ev = await this.info()
+    return !!ev && (ev.rules || 1) > RULES_VERSION
+  }
+
+  async ticketTypes() {
+    const ev = await this.info()
+    if (!ev) return []
+    const types = ev.ticketTypes && ev.ticketTypes.length ? ev.ticketTypes : [{ id: 'general', name: 'General', capacity: null, requireApproval: false }]
+    const out = []
+    for (const t of types) {
+      const taken = (await this._get('meta/type/' + t.id)) || 0
+      out.push({ ...t, requireApproval: t.requireApproval || !!ev.requireApproval, taken, left: t.capacity === null ? null : Math.max(0, t.capacity - taken) })
+    }
+    return out
+  }
+
   async keys() {
     return this._get('keys')
   }
@@ -127,12 +146,13 @@ class PlumaEvent extends EventEmitter {
 
   // ---- guest ----
 
-  async rsvp({ name, email = null, answers = {} }) {
+  async rsvp({ name, email = null, answers = {}, ticketType = null }) {
+    if (await this.needsUpdate()) throw new Error('Update Pluma to join this event')
     const keys = await this.keys()
     if (!keys) throw new Error('Event not loaded yet')
     const sealed = seal({ name, email, answers }, unhex(keys.boxKey))
     await this.base.append(
-      { type: 'rsvp', holderKey: hex(this.member.sign.publicKey), sealed: hex(sealed), at: Date.now() },
+      { type: 'rsvp', ticketType, holderKey: hex(this.member.sign.publicKey), sealed: hex(sealed), at: Date.now() },
       { optimistic: true }
     )
     await this.base.update()
@@ -149,7 +169,12 @@ class PlumaEvent extends EventEmitter {
     const id = idFor(this.key, this.me)
     const t = await this._get('tickets/' + id)
     const revoked = await this._get('revoked/' + id)
-    return { status: g.status, message: g.message, ticket: t && !revoked ? t.ticket : null, ticketId: id }
+    let position = null
+    if (g.status === 'waitlist' && g.wseq) {
+      position = 1
+      for (const w of await this._list('waitlist/')) if (Number(w.id) < g.wseq) position++
+    }
+    return { status: g.status, message: g.message, ticketType: g.ticketType, position, ticket: t && !revoked ? t.ticket : null, ticketId: id }
   }
 
   async ticketQR(now = Date.now()) {
@@ -193,7 +218,7 @@ class PlumaEvent extends EventEmitter {
     const hidden = new Set((await this._list('hidden/')).map((h) => h.id))
     return list.map((g) => {
       const details = secrets ? unseal(unhex(g.sealed), secrets.box) : null
-      return { id: g.id, status: g.status, hidden: hidden.has(g.id), at: g.at, ...(details || { name: null }) }
+      return { id: g.id, status: g.status, ticketType: g.ticketType || 'general', hidden: hidden.has(g.id), at: g.at, ...(details || { name: null }) }
     })
   }
 

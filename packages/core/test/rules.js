@@ -23,11 +23,11 @@ test('capacity is never oversold, cancel frees a seat', async (t) => {
     const l = await ev.guests()
     return l.length === 3 && l.map((g) => g.status).sort()
   })
-  t.alike(statuses, ['approved', 'approved', 'full'])
+  t.alike(statuses, ['approved', 'approved', 'waitlist'])
 
   const full = [ga, gb, gc]
   const states = await Promise.all(full.map((g) => eventually(async () => { const s = await g.myStatus(); return s.status !== 'none' && s })))
-  const loser = full[states.findIndex((s) => s.status === 'full')]
+  const loser = full[states.findIndex((s) => s.status === 'waitlist')]
   const winner = full[states.findIndex((s) => s.status === 'approved')]
 
   await eventually(async () => (await winner.myStatus()).ticket)
@@ -37,7 +37,7 @@ test('capacity is never oversold, cancel frees a seat', async (t) => {
   const loserId = loser.me
   await ev.approve(loserId)
   await eventually(async () => (await loser.myStatus()).ticket)
-  t.pass('freed seat can be given to the guest who was full')
+  t.pass('the waitlisted guest got the freed seat automatically')
 })
 
 test('approval required: pending until a host approves; decline revokes', async (t) => {

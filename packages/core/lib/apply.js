@@ -7,7 +7,8 @@
 //   keys                  { ticketKey, boxKey } host public keys
 //   hosts/<writer>        { role: organiser|manager|scanner, name, visible, boxKey }
 //   secrets/<writer>      sealed host secrets for that co-host
-//   guests/<writer>       { status: approved|pending|declined|full|closed|cancelled|revoked, holderKey, sealed, at, message }
+//   guests/<writer>       { status: approved|pending|waitlist|declined|closed|cancelled|revoked,
+//                           ticketType, holderKey, sealed, at, message, wseq }
 //   hidden/<writer>       true when a host hid the guest (selective mode)
 //   parked/decision|ticket/<writer>  host records that arrived before the RSVP
 //   tickets/<ticketId>    { guest, ticket }
@@ -16,15 +17,23 @@
 //   roster/<writer>       { name }   (visible guest names, written by hosts)
 //   blasts/<seq>          { body, audience, at, by }
 //   meta/approved         number of approved guests
+//   meta/type/<id>        approved guests per ticket type
+//   meta/wseq             waitlist counter
+//   waitlist/<seq>        guest id, in the order they joined the waitlist
 
 const b4a = require('b4a')
 const { ticketId: deriveTicketId } = require('./ticket')
 
+// Bump when the meaning of records changes. Devices refuse to apply events
+// created under newer rules than they know, instead of computing a different state.
+const RULES_VERSION = 2
+
 const STATUSES = ['approved', 'declined', 'pending']
+const QUESTION_KINDS = ['text', 'choice', 'agree']
 const MODES = ['public', 'selective', 'private']
 const EVENT_FIELDS = [
   'title', 'description', 'start', 'end', 'timezone', 'type', 'location', 'link', 'cover',
-  'capacity', 'requireApproval', 'accepting', 'guestListMode', 'questions'
+  'capacity', 'requireApproval', 'accepting', 'guestListMode', 'questions', 'ticketTypes'
 ]
 
 const isHex = (s, bytes) => typeof s === 'string' && s.length === bytes * 2 && /^[0-9a-f]+$/.test(s)
@@ -37,7 +46,37 @@ function pickEventFields(input) {
   if (out.capacity !== undefined && out.capacity !== null && !(Number.isInteger(out.capacity) && out.capacity >= 0)) {
     delete out.capacity
   }
+  if (out.ticketTypes !== undefined) out.ticketTypes = cleanTicketTypes(out.ticketTypes)
+  if (out.questions !== undefined) out.questions = cleanQuestions(out.questions)
   return out
+}
+
+const isCap = (c) => c === null || c === undefined || (Number.isInteger(c) && c >= 0)
+
+function cleanTicketTypes(list) {
+  if (!Array.isArray(list)) return []
+  return list.slice(0, 20).filter((t) => t && isStr(t.id, 40) && t.id && isStr(t.name, 60) && isCap(t.capacity)).map((t) => ({
+    id: t.id, name: t.name, capacity: t.capacity ?? null, requireApproval: !!t.requireApproval
+  }))
+}
+
+function cleanQuestions(list) {
+  if (!Array.isArray(list)) return []
+  return list.slice(0, 20).filter((q) => q && isStr(q.id, 40) && q.id && isStr(q.label, 200) && QUESTION_KINDS.includes(q.kind)).map((q) => ({
+    id: q.id,
+    label: q.label,
+    kind: q.kind,
+    required: !!q.required,
+    options: q.kind === 'choice' && Array.isArray(q.options) ? q.options.filter((o) => isStr(o, 100)).slice(0, 20) : []
+  }))
+}
+
+// The ticket type a guest asked for (or the implicit single type).
+function typeOf(event, id) {
+  const types = event.ticketTypes || []
+  const t = types.find((x) => x.id === id) || types[0]
+  if (!t) return { id: 'general', name: 'General', capacity: null, requireApproval: !!event.requireApproval }
+  return { ...t, requireApproval: t.requireApproval || !!event.requireApproval }
 }
 
 function createApply(eventKeyRef) {
@@ -65,6 +104,7 @@ async function applyOne(v, writer, node, view, host, eventKey) {
   const r = await role(view, writer)
   const isManager = r === 'organiser' || r === 'manager'
   const event = await get(view, 'event')
+  if (event && (event.rules || 1) > RULES_VERSION) return // made by a newer Pluma: don't guess
 
   // Guest records are the only ones accepted from non-writers (optimistic).
   if (v.type === 'rsvp') return rsvp(v, writer, node, view, host, event, eventKey)
@@ -75,7 +115,9 @@ async function applyOne(v, writer, node, view, host, eventKey) {
       if (event) return
       const { ticketKey, boxKey } = v
       if (!isHex(ticketKey, 32) || !isHex(boxKey, 32)) return
-      await view.put('event', { cancelled: false, accepting: true, guestListMode: 'private', capacity: null, requireApproval: false, questions: [], ...pickEventFields(v.event) })
+      const rules = Number.isInteger(v.rules) ? v.rules : 1
+      await view.put('event', { cancelled: false, accepting: true, guestListMode: 'private', capacity: null, requireApproval: false, questions: [], ticketTypes: [], ...pickEventFields(v.event), rules })
+      if (rules > RULES_VERSION) return
       await view.put('keys', { ticketKey, boxKey })
       await view.put('hosts/' + writer, { role: 'organiser', name: isStr(v.name, 100) ? v.name : '', visible: true, boxKey: v.memberBoxKey || null })
       await view.put('meta/approved', 0)
@@ -83,7 +125,9 @@ async function applyOne(v, writer, node, view, host, eventKey) {
     }
     case 'event.update': {
       if (!isManager || !event) return
-      await view.put('event', { ...event, ...pickEventFields(v.fields) })
+      const updated = { ...event, ...pickEventFields(v.fields) }
+      await view.put('event', updated)
+      await promote(view, eventKey, updated) // more room may have opened up
       return
     }
     case 'event.cancel': {
@@ -140,7 +184,8 @@ async function applyOne(v, writer, node, view, host, eventKey) {
       const g = await get(view, 'guests/' + t.guest)
       if (g && g.status === 'approved') {
         await view.put('guests/' + t.guest, { ...g, status: 'revoked', message: isStr(v.reason, 200) ? v.reason : null })
-        await view.put('meta/approved', (await get(view, 'meta/approved')) - 1)
+        await count(view, g.ticketType, -1)
+        await promote(view, eventKey, event)
       }
       return
     }
@@ -190,23 +235,27 @@ async function rsvp(v, writer, node, view, host, event, eventKey) {
 
   await host.ackWriter(node.from.key)
 
+  const type = typeOf(event, v.ticketType)
   let status
   if (event.cancelled || !event.accepting) status = 'closed'
-  else if (event.requireApproval) status = 'pending'
-  else if (event.capacity !== null && (await get(view, 'meta/approved')) >= event.capacity) status = 'full'
+  else if (type.requireApproval) status = 'pending'
+  else if (!(await hasRoom(view, event, type))) status = 'waitlist'
   else status = 'approved'
 
-  if (status === 'approved') {
-    await view.put('meta/approved', (await get(view, 'meta/approved')) + 1)
-    await view.del('revoked/' + idFor(eventKey, writer))
-  }
   const g = {
     status,
+    ticketType: type.id,
     holderKey: v.holderKey,
     sealed: v.sealed,
     at: typeof v.at === 'number' ? v.at : 0,
-    message: null
+    message: null,
+    wseq: null
   }
+  if (status === 'approved') {
+    await count(view, type.id, 1)
+    await view.del('revoked/' + idFor(eventKey, writer))
+  }
+  if (status === 'waitlist') g.wseq = await joinWaitlist(view, writer)
   await view.put('guests/' + writer, g)
 
   const parked = await get(view, 'parked/decision/' + writer)
@@ -219,20 +268,62 @@ async function rsvp(v, writer, node, view, host, event, eventKey) {
 
 async function decide(view, eventKey, event, guest, g, decision) {
   if (g.status === 'cancelled' || g.status === decision.status) return
-  let approved = await get(view, 'meta/approved')
+  const type = typeOf(event, g.ticketType)
   if (decision.status === 'approved') {
-    if (event.capacity !== null && approved >= event.capacity) return // no oversell
-    approved++
+    if (!(await hasRoom(view, event, type))) return // no oversell
+    await count(view, type.id, 1)
   } else if (g.status === 'approved') {
-    approved--
+    await count(view, type.id, -1)
   }
-  await view.put('meta/approved', approved)
-  await view.put('guests/' + guest, { ...g, status: decision.status, message: decision.message })
+  await leaveWaitlist(view, g)
+  await view.put('guests/' + guest, { ...g, status: decision.status, message: decision.message, wseq: null })
   if (decision.status === 'approved') {
     await view.del('revoked/' + idFor(eventKey, guest))
     await settleTicket(view, eventKey, guest)
   } else if (g.status === 'approved') {
     await revokeFor(view, eventKey, guest, 'declined')
+    await promote(view, eventKey, event)
+  }
+}
+
+async function count(view, typeId, delta) {
+  await view.put('meta/approved', ((await get(view, 'meta/approved')) || 0) + delta)
+  await view.put('meta/type/' + typeId, ((await get(view, 'meta/type/' + typeId)) || 0) + delta)
+}
+
+async function hasRoom(view, event, type) {
+  if (event.capacity !== null && event.capacity !== undefined && ((await get(view, 'meta/approved')) || 0) >= event.capacity) return false
+  if (type.capacity !== null && type.capacity !== undefined && ((await get(view, 'meta/type/' + type.id)) || 0) >= type.capacity) return false
+  return true
+}
+
+async function joinWaitlist(view, guest) {
+  const seq = ((await get(view, 'meta/wseq')) || 0) + 1
+  await view.put('meta/wseq', seq)
+  await view.put('waitlist/' + String(seq).padStart(10, '0'), guest)
+  return seq
+}
+
+async function leaveWaitlist(view, g) {
+  if (g.wseq) await view.del('waitlist/' + String(g.wseq).padStart(10, '0'))
+}
+
+// Give freed seats to the waitlist in order. Ticket types that need approval
+// stay on the waitlist for a host to approve.
+async function promote(view, eventKey, event) {
+  if (event.cancelled || !event.accepting) return
+  const entries = []
+  for await (const { value } of view.createReadStream({ gt: 'waitlist/', lt: 'waitlist/~' })) entries.push(value)
+  for (const guest of entries) {
+    const g = await get(view, 'guests/' + guest)
+    if (!g || g.status !== 'waitlist') continue
+    const type = typeOf(event, g.ticketType)
+    if (type.requireApproval || !(await hasRoom(view, event, type))) continue
+    await count(view, type.id, 1)
+    await leaveWaitlist(view, g)
+    await view.put('guests/' + guest, { ...g, status: 'approved', wseq: null, message: 'A spot opened up' })
+    await view.del('revoked/' + idFor(eventKey, guest))
+    await settleTicket(view, eventKey, guest)
   }
 }
 
@@ -250,10 +341,12 @@ async function rsvpCancel(v, writer, node, view, host, eventKey) {
   const g = await get(view, 'guests/' + writer)
   if (!g || g.status === 'cancelled') return
   await host.ackWriter(node.from.key)
-  if (g.status === 'approved') await view.put('meta/approved', (await get(view, 'meta/approved')) - 1)
-  await view.put('guests/' + writer, { ...g, status: 'cancelled' })
+  if (g.status === 'approved') await count(view, g.ticketType || 'general', -1)
+  await leaveWaitlist(view, g)
+  await view.put('guests/' + writer, { ...g, status: 'cancelled', wseq: null })
   await view.del('roster/' + writer)
   await revokeFor(view, eventKey, writer, 'cancelled')
+  await promote(view, eventKey, await get(view, 'event'))
 }
 
 function idFor(eventKey, guestHex) {
@@ -265,4 +358,4 @@ async function revokeFor(view, eventKey, guestHex, reason) {
   if (await get(view, 'tickets/' + id)) await view.put('revoked/' + id, { reason })
 }
 
-module.exports = { createApply, idFor }
+module.exports = { createApply, idFor, RULES_VERSION }
