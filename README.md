@@ -2,12 +2,39 @@
 
 **Event invites, RSVPs and check-in with no accounts, no servers and no fees.**
 A clean-room, open-source rebuild of [Luma](https://luma.com)'s core organiser features on a
-peer-to-peer network ([Pear/Holepunch](https://github.com/holepunchto)). The organiser's phone *is*
-the server; guests' phones help share the event; tickets and check-in work offline.
+peer-to-peer network ([Pear/Holepunch](https://github.com/holepunchto)). The organiser's device *is*
+the server; guests' devices help share the event; tickets and check-in work offline.
 
 Apache-2.0 licensed. Built at Autonomous SG 2026 (NUS Hackers track).
 
----
+## Get started (no terminal needed)
+
+Download from the [latest release](https://github.com/kuikuo/pluma/releases/latest):
+
+| Your device | Download | First launch |
+|---|---|---|
+| **Windows** | `Pluma-0.1.0-win-x64.exe` (installer) | Windows may say "Windows protected your PC": click **More info → Run anyway**, then follow the installer. |
+| **Mac (Apple Silicon)** | `Pluma-0.1.0-mac-arm64.dmg` | Open the .dmg and drag Pluma to Applications. The first time, macOS blocks it: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. |
+| **Mac (Intel)** | `Pluma-0.1.0-mac-x64.dmg` | Same as above. |
+| **Linux** | `Pluma-0.1.0-linux-x86_64.AppImage` | Right-click → Properties → allow executing as a program, then double-click. |
+| **Android** | [`pluma.apk`](https://github.com/kuikuo/pluma/releases/latest/download/pluma.apk) | Open the file and allow installing from your browser when asked. |
+
+These hackathon builds aren't code-signed (signing costs money and takes days), which is why your
+system asks once. No account, sign-up or setup after that.
+
+### Try it in 2 minutes (two devices, e.g. your laptop and a friend's, or a laptop and an Android phone)
+
+1. **Device A:** open Pluma → **Create an event** → give it a name → **Publish**.
+   Optional: add a ticket type ("Speaker", needs approval) and a question ("Dietary needs?").
+2. **Device A:** click **Copy invite link** and send it to device B (chat, email, anything).
+3. **Device B:** open the link. The invite page shows the event; click **Get your ticket** (or paste
+   the link into Pluma's "Got an invite link?" box) → **I'm going** → fill in the form → **Confirm**.
+4. **Device A:** the guest appears within seconds, with their answers. Approve them if needed.
+5. **Device B:** the ticket QR code appears. It refreshes every 30 seconds.
+6. **Device A:** **Check in guests** and hold device B's ticket up to the webcam: ✓ Welcome.
+   Scan it again: ✕ Already checked in. Turn Wi-Fi off on device A and it still checks tickets.
+
+Keep Pluma open on device A while you try it: the organiser's device is what shares the event.
 
 ## The target: Luma
 
@@ -127,7 +154,7 @@ apps/invite-page  static invite page (GitHub Pages)
 apps/cli          command-line app, handy as a second device or an always-on co-host
 ```
 
-## Run it
+## For developers: build and run from source
 
 ### Tests
 
