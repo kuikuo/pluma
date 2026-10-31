@@ -1,0 +1,24 @@
+{
+  "name": "@pluma/core",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "brittle-node test/*.js"
+  },
+  "dependencies": {
+    "autobase": "^7.28.2",
+    "b4a": "^1.9.0",
+    "compact-encoding": "^3.5.2",
+    "corestore": "^7.16.1",
+    "hyperbee": "^2.27.3",
+    "hypercore-crypto": "^3.7.0",
+    "hyperswarm": "^4.17.2",
+    "protomux": "^3.13.0",
+    "protomux-wakeup": "^2.9.0",
+    "sodium-universal": "^5.0.1"
+  },
+  "devDependencies": {
+    "brittle": "^4.5.0",
+    "hyperdht": "^6.35.0"
+  }
+}

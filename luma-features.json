@@ -1,0 +1,3775 @@
+[
+  {
+    "area": "events",
+    "name": "Multiple creation entry points",
+    "description": "Create an event from luma.com/create, the web Create Event button, the iOS + button or the Android + Create button.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A local Pear form writes the event record to the organizer's own Hypercore/Hyperbee. No server needed.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Instant publish",
+    "description": "Events go live as soon as they are created, with no draft or review step, and stay editable.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Appending to the organizer's core publishes it to replicating peers. A draft can be a local-only Hyperbee key.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Event title",
+    "description": "Required name field (API `name`).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A field in the event document.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event",
+      "https://docs.luma.com/reference/post_v1-events-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Start/end date-time with IANA timezone",
+    "description": "start_at and an IANA timezone are required; end_at is optional. Multi-day events are supported. duration_interval (ISO 8601) is read-only in GET responses; the create API takes no duration.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Store the UTC instant plus the IANA zone and render with Intl.",
+    "source_urls": [
+      "https://docs.luma.com/reference/get_v1-events-get.md",
+      "https://docs.luma.com/reference/post_v1-events-create.md"
+    ],
+    "verification": "corrected",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Timezone defaults from location",
+    "description": "Luma's sources disagree. One article says in-person events take the venue timezone and hosts can't change it; another says it defaults from the location but can be changed. Calendars with a location derive their timezone from it.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Needs an offline tz-boundary dataset bundled in the app, or a geocoder.",
+    "source_urls": [
+      "https://help.luma.com/p/understanding-timezones",
+      "https://help.luma.com/p/creating-an-event"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Timezone-aware display to viewers",
+    "description": "In-person events show venue local time; online events show each viewer's local time. Lists show the original time plus local time in parentheses when they differ. Emails follow the same rules with a fallback to the sender's or event's zone.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Done in the client from the stored zone and the device zone.",
+    "source_urls": [
+      "https://help.luma.com/p/understanding-timezones"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Automatic user timezone detection",
+    "description": "The user's timezone is auto-detected on each visit and can't be set by hand (VPNs can cause errors). Handles tz-rule changes such as B.C./Alberta permanent DST from 2026.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Read the device timezone. A manual override is easy to add.",
+    "source_urls": [
+      "https://help.luma.com/p/understanding-timezones"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Event type: in-person / online / hybrid",
+    "description": "Choose the location modality at creation. API location_type enum: discord, meet, twitch, twitter, youtube, zoom, offline, missing, unknown.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An enum field. Infer the platform from the URL hostname in the client.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event",
+      "https://docs.luma.com/reference/get_v1-events-get.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Venue via address autocomplete with map",
+    "description": "Venue picked from Google Maps suggestions, with a map on the event page. The API accepts manual text, a Google place_id or a lookup query (top result, falling back to manual). It stores address, city, region, country, Google and Apple place IDs, coordinates and an optional free-text directions note. A places-search API endpoint also exists.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Free-text addresses are trivial. Autocomplete, geocoding and map tiles need a third-party service (OSM/Nominatim) or bundled offline data.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event",
+      "https://docs.luma.com/reference/post_v1-events-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Adjust map pin",
+    "description": "Drag the pin up to 1 km without changing the address text. The button then reads 'Pin Adjusted', and 'Use Original Location' reverts it. Web and mobile.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Store override lat/lng next to the geocoded point. The map UI still needs tiles.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Restrict location to guests",
+    "description": "'Restrict Location to Guests' (location_visibility public / guests-only). Non-approved viewers see only the city or area, with coarsened coordinates; approved guests and hosts see the full address. Independent of event visibility, works on public and private events, and doesn't affect featuring eligibility.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "The public record holds only the city. The precise address is encrypted to approved guests' keys, which a host or seeder must hand out on approval.",
+    "source_urls": [
+      "https://help.luma.com/p/hiding-your-event-location",
+      "https://docs.luma.com/reference/get_v1-events-get.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Online meeting link",
+    "description": "Any meeting URL (Zoom, Meet, YouTube Live, Twitch, custom). It can be changed at any time without notifying guests, who are routed to the new link.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A field in the event record. Encrypt it to approved guests to restrict access.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event",
+      "https://help.luma.com/p/updating-event-information"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Per-guest join links and join tracking",
+    "description": "Each guest gets a luma.com/join/... redirect that records their first click (joined_at), shown in the Guests tab. Early clicks count; joins are not check-ins.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Redirect tracking needs a server. In-app, the guest's client appends a 'joined' record (honour system).",
+    "source_urls": [
+      "https://help.luma.com/p/how-does-zoom-attendance-work"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Zoom integration",
+    "description": "Link Zoom at luma.com/settings to auto-create a meeting or webinar at creation (web only). Luma replaces Zoom registration, and title/time stay in sync. One Zoom account per Luma account. A meeting can't be auto-created after creation, so you paste a link instead.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Zoom OAuth needs a backend or a user-supplied token. Pasted links are easy.",
+    "source_urls": [
+      "https://help.luma.com/p/zoom-integration",
+      "https://luma.com/pricing"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Zoom attendance data",
+    "description": "Pulls Zoom join/leave participant data into Insights, merged by Zoom account or display name. No emails.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs the Zoom API with OAuth.",
+    "source_urls": [
+      "https://help.luma.com/p/how-does-zoom-attendance-work"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Google Meet integration",
+    "description": "Connect Google to auto-create a persistent Meet space per event (web only; manual on iOS). The link appears on the page and in confirmation and reminder emails. It isn't regenerated later.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Google OAuth needs a backend. Alternatives: pasted link or native Hyperswarm audio/video rooms.",
+    "source_urls": [
+      "https://help.luma.com/p/google-meet-integration"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Hybrid events",
+    "description": "The physical address is the primary location (map, directions, timezone). The online link goes in registration/reminder emails or the description. Optional separate in-person and online ticket types. The API forbids combining meeting_url with geo_address_json.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Allow both a location and a meeting_url on one record.",
+    "source_urls": [
+      "https://help.luma.com/p/hybrid-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Rich-text description",
+    "description": "Bold, italic, lists, links and emoji, stored as Markdown (description_md). Images must be on Luma's CDN. A bare YouTube/Vimeo/Loom URL on its own line embeds the video.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Markdown in Hyperbee, images in a Hyperdrive.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event",
+      "https://docs.luma.com/reference/post_v1-events-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Event FAQs",
+    "description": "Events carry FAQs. They are copied on clone, and featuring rules forbid off-platform signup links in them.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A list of Q/A pairs.",
+    "source_urls": [
+      "https://help.luma.com/p/cloning-events",
+      "https://help.luma.com/p/featuring-your-event-on-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Cover image (gallery or upload)",
+    "description": "Curated gallery or upload. Square 1:1 at 800x800 or larger is recommended; GIFs are partly supported. The API has upload-URL and cover-search endpoints.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Blob in a Hyperdrive/Hyperblobs. The organizer or a seeder must stay online for new peers. Bundle an original gallery.",
+    "source_urls": [
+      "https://help.luma.com/p/event-cover-images",
+      "https://help.luma.com/p/creating-an-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Auto-generated social/OG image",
+    "description": "Built from the cover and event name, with colours from the cover palette (theme and tint don't affect it). Regenerates when the cover or name changes. ?v=1 refreshes previews on Twitter, Slack, iMessage and WhatsApp; Facebook, LinkedIn and Telegram use their own debuggers.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs a public HTTPS page that crawlers can fetch (a gateway).",
+    "source_urls": [
+      "https://help.luma.com/p/updating-social-images"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Themes (40+)",
+    "description": "Categories: Minimal, Quantum, Ambient, Texture, Emoji, Confetti, Pattern, Playful, Seasonal, Holiday. Holiday themes (luma.com/holiday) use fixed colours. Includes animated backgrounds; seasonal themes rotate, and events keep retired themes. Themes can't be set on iOS.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client-side bundled assets; the event stores a theme ID. Draw original art (clean-room).",
+    "source_urls": [
+      "https://help.luma.com/p/event-themes-and-customization"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Theme colour (tint)",
+    "description": "A preset or custom hex, used by most themes as a tint adjusted for readability. Quantum uses preset gradients; Polaroid, Pool and holiday themes ignore the tint. Whether the tint also colours event emails is disputed (see Unverified).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A tint_color field; contrast handled in the client.",
+    "source_urls": [
+      "https://help.luma.com/p/event-themes-and-customization"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Theme style variant",
+    "description": "Pattern, Emoji and Confetti themes pick the shape; Ambient, Playful and Seasonal switch between themes in the same category.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A theme_style sub-field.",
+    "source_urls": [
+      "https://help.luma.com/p/event-themes-and-customization"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Title font",
+    "description": "Font for the title and headings from the API font enum (about 25 values; the help page gives no count). Each theme has a default font.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Bundle openly licensed fonts.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-events-create.md",
+      "https://help.luma.com/p/event-themes-and-customization"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Light/Dark/Auto display",
+    "description": "Supported themes have light and dark modes; Auto follows the viewer's OS.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client-side.",
+    "source_urls": [
+      "https://help.luma.com/p/event-themes-and-customization"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Custom background image",
+    "description": "Not supported by default; Luma points to Enterprise.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Trivial in P2P (an image in the Hyperdrive). Possible differentiator.",
+    "source_urls": [
+      "https://help.luma.com/p/event-themes-and-customization"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Visibility: Public",
+    "description": "Listed on the host's calendar, eligible for Discover, indexed by search engines and shown in Luma search.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Discovery needs a shared index or topic. Search indexing needs an HTTP gateway.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-your-event-visibility",
+      "https://help.luma.com/p/featuring-your-event-on-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Visibility: Private (unlisted)",
+    "description": "Shown on no calendar (including the host's own), link-only and noindex.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The core key or invite link is the capability, and it is never announced.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-your-event-visibility"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Visibility: Member-only",
+    "description": "Listed only to active members of a calendar with membership tiers. The direct link still opens it.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Encrypt the listing to the member set; rotate keys when membership changes.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-your-event-visibility"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Change visibility after creation",
+    "description": "Manage Event > Overview, at the bottom of the tab.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Update the field. Copies peers already replicated can't be retracted.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-your-event-visibility"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Choose owning calendar at creation",
+    "description": "Personal calendar (default), a team calendar you manage, or a new calendar. Every event has exactly one managing calendar.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The event references calendar_id.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-an-event",
+      "https://help.luma.com/p/managing-events-with-calendars"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Transfer event between calendars",
+    "description": "The managing calendar controls access, Stripe, email branding and Plus. Transfers go Personal to Team or Team to Team, never to Personal (web: Overview > Visibility & Discovery; iOS: slider confirm). Plus benefits and payments stay with the original calendar.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Update the writer set and a managedBy pointer. A seeder helps the event stay available.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-events-with-calendars",
+      "https://help.luma.com/p/understanding-calendar-permissions"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Co-hosts: manager / non-manager roles",
+    "description": "Add Host by email and choose show-on-page and/or manage access. Managers have full access; non-managers are display-only. The creator is always a manager and can't be removed. API access_level: none, check-in, manager.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Managers are Autobase writers. Invite by key or pairing link instead of email.",
+    "source_urls": [
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event",
+      "https://docs.luma.com/reference/post_v1-events-hosts-add.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Placeholder host profiles",
+    "description": "For hosts not yet on Luma, the organizer sets name and avatar. A host's email can't be edited (remove and re-add).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local overrides until the person's identity key is linked.",
+    "source_urls": [
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Show/hide host on event page",
+    "description": "A per-host toggle. A personal-calendar owner can't be hidden; check-in hosts are never shown.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An is_visible flag.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-events-hosts-add.md",
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Host invite email + calendar invite",
+    "description": "New hosts get an email with a calendar invite.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email needs a relay. P2P: in-app notice plus .ics.",
+    "source_urls": [
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Host limits",
+    "description": "5 hosts by default, 70 after a calendar admin unlocks sends.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Anti-spam limit; not needed in P2P.",
+    "source_urls": [
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Host self-recovery",
+    "description": "If a manager removes themselves, another manager or a calendar admin can add them back.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Any remaining writer, or the calendar root, re-adds the writer.",
+    "source_urls": [
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "'Presented by' team calendar branding",
+    "description": "Team-calendar events show 'Presented By' plus the calendar name, which can't be hidden. Individual hosts can all be hidden.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Render calendar metadata.",
+    "source_urls": [
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Contact the Host",
+    "description": "Signed-in viewers message the host. The email goes only to the original creator (even after a transfer) with reply-to set to the guest. Replies to automated emails also reach the host. Web, iOS, Android.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Encrypted DM to host keys. Needs the host or a mailbox seeder online.",
+    "source_urls": [
+      "https://help.luma.com/p/contacting-event-hosts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Report Event",
+    "description": "A 'Report Event' link on public event pages.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "No central moderator. Route to index curators, or local block/mute.",
+    "source_urls": [
+      "https://luma.com/50u19qxx"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Public guest count and preview",
+    "description": "When on, anyone sees the Going count plus a few names and photos; hosts and approved guests see the full roster (never emails). When off, only hosts see it (show_guest_list).",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "The host publishes the public count. The full roster is encrypted to approved guests.",
+    "source_urls": [
+      "https://help.luma.com/p/event-guest-list"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Event page sections",
+    "description": "Cover/title, Hosted By, venue with a Maps link, registration CTA and status (e.g. Past Event), Private Event label, host socials, attendee preview, Contact the Host, Report Event. The date/time block wasn't in the extracted page but is very likely present.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Rendered from the event record.",
+    "source_urls": [
+      "https://luma.com/50u19qxx"
+    ],
+    "verification": "corrected",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Editing event details",
+    "description": "Edit name, start/duration, location, virtual link, description and theme; changes are live. Changing the URL is Plus; changing the calendar is a separate transfer.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Appends give an edit history.",
+    "source_urls": [
+      "https://help.luma.com/p/updating-event-information",
+      "https://docs.luma.com/reference/post_v1-events-update.md"
+    ],
+    "verification": "corrected",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Smart change notifications",
+    "description": "Name, start/duration or location changes email Going guests a new calendar invite plus an iOS push ('Guests will receive an email update'). Link, description and theme changes notify no one; Invited and Not Going guests aren't notified. suppress_email skips the email, but push still goes out for time/location changes.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Clients diff material fields and notify locally. Email needs a relay.",
+    "source_urls": [
+      "https://help.luma.com/p/updating-event-information",
+      "https://docs.luma.com/reference/post_v1-events-update.md"
+    ],
+    "verification": "corrected",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Custom event URL slug",
+    "description": "luma.com/<slug>, 3-50 characters, globally unique (namespace shared with calendars). Old URLs forward until reclaimed. Plus only; no white-label domains.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Global names need a registry. Use keys, petnames or per-calendar slugs.",
+    "source_urls": [
+      "https://help.luma.com/p/updating-event-information",
+      "https://help.luma.com/p/luma-plus"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Default random short URL",
+    "description": "A random path such as luma.com/50u19qxx. IDs are evt-...; the API looks up entities by slug or URL.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A pear:// or core-key link.",
+    "source_urls": [
+      "https://luma.com/50u19qxx",
+      "https://docs.luma.com/reference/get_v1-events-get.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Auto URLs with calendar slug prefix",
+    "description": "Plus calendars auto-prefix event URLs with the calendar slug.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "calendar/slug keys need no global registry.",
+    "source_urls": [
+      "https://help.luma.com/p/luma-plus"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Cancel event",
+    "description": "Managers only (More > Cancel Event). Optional refund-all and an editable cancellation email. Deletes the event pages; the host gets the guest list by email. Guests of ended events aren't emailed unless refunded. API: two-step token (expires in 15 min), irreversible, should_refund required for paid events.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Append a cancelled tombstone that clients hide. Refunds need a payment provider.",
+    "source_urls": [
+      "https://help.luma.com/p/canceling-an-event",
+      "https://docs.luma.com/reference/post_v1-events-cancel.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "events",
+    "name": "Clone / duplicate event",
+    "description": "Set target calendar, visibility, dates and timezone. Copies title, description, FAQs, cover, theme, location, ticket types and pricing, coupons, capacity/approval/waitlist settings, questions, custom emails, feedback settings and tags (same calendar only). Doesn't copy guests, blasts, custom reminders, co-hosts or check-in staff.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Copy the document into a new key and drop per-event collections.",
+    "source_urls": [
+      "https://help.luma.com/p/cloning-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Recurring events via bulk clone",
+    "description": "On web, clone many at once (sources say 20 or 30; 10 with Zoom) using Add Time and daily/weekly/monthly patterns. iOS clones one at a time. Each clone is independent, optionally with its own new Zoom meeting.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Generate instances from an RRULE and add a series_id link.",
+    "source_urls": [
+      "https://help.luma.com/p/cloning-events",
+      "https://help.luma.com/p/multi-session-recurring-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Multi-session events (deprecated)",
+    "description": "Current help lists only workarounds: clone, a calendar page, links in descriptions, or one ticket type per same-day session. No bulk registration across events. Multi-session events can't be submitted to calendars.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Parent series with child sessions. Register-once-for-all could differentiate.",
+    "source_urls": [
+      "https://help.luma.com/p/multi-session-recurring-events"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Prefilled create-link templates",
+    "description": "No templates feature. lu.ma/create accepts params: calendar, cover_url, duration, timezone, visibility, tint_color, font_title, max_capacity.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "pear:// deep-link params or saved local templates.",
+    "source_urls": [
+      "https://help.luma.com/p/cloning-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Share event poster and QR code (iOS)",
+    "description": "iOS generates a shareable poster image and an event-page QR code (separate from check-in QR). Taking a screenshot prompts poster sharing.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Render client-side; the QR encodes the pear:// link.",
+    "source_urls": [
+      "https://help.luma.com/p/promote-your-event"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Later"
+  },
+  {
+    "area": "events",
+    "name": "Invite past attendees at creation",
+    "description": "When creating an event, hosts can invite people from earlier events. Opens, clicks and registrations are tracked.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "The host's local contacts. Deliver by DM to their keys, or email via a relay.",
+    "source_urls": [
+      "https://help.luma.com/p/promote-your-event"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "events",
+    "name": "Management dashboard tabs",
+    "description": "Manage Event tabs: Overview (visibility, transfer, Discover removal), Registration, Guests, Insights and More (embed, clone, cancel). A Blasts tab is referenced elsewhere (Blasts > System Messages) but not confirmed by these sources.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client UI organisation.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-your-event-visibility",
+      "https://help.luma.com/p/update-to-reminders-on-luma"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Open RSVP / registration form",
+    "description": "Register from the event page with only name and email, no account needed. A known email attaches to the existing account; signed-in users get prefilled details. Sign-in is needed only to buy more tickets.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The guest writes a signed registration to their own core and the organizer indexes it. A keypair is created silently on first use.",
+    "source_urls": [
+      "https://help.luma.com/p/event-registration-process",
+      "https://help.luma.com/p/group-registration"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Duplicate-registration guard",
+    "description": "A second submission from a registered email asks the guest to sign in ('already registered', or 'sign in to register for additional tickets' when group registration is on).",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Dedupe by public key in the organizer view.",
+    "source_urls": [
+      "https://help.luma.com/p/event-registration-process"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Accept-registrations toggle",
+    "description": "Registration stays open by default, even after the event ends, until the host turns off Accept Registration (registration_open). Independent of capacity.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A flag in the event config.",
+    "source_urls": [
+      "https://help.luma.com/p/event-registration-process",
+      "https://docs.luma.com/reference/get_v1-events-get.md",
+      "https://help.luma.com/p/cloning-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Event capacity",
+    "description": "An event-wide cap on approved tickets across all types (max_capacity, Event Capacity card). Registration closes when full, and only approved guests count. spots_remaining is a lagging, manage-access API field; one source says it's shown publicly, which is unconfirmed.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Offline registrations can oversell. Enforce at the host or seeder linearizer (Autobase indexer).",
+    "source_urls": [
+      "https://docs.luma.com/reference/get_v1-events-get.md",
+      "https://help.luma.com/p/waitlist"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Multiple ticket types",
+    "description": "Up to 200 types per event, each with a name (1-30 chars), description (up to 1000), price, capacity and sales window. Names aren't shown when only one type exists. An event created with no ticket types gets one free 'Standard' ticket.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Ticket type records in the event Hyperbee.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types",
+      "https://docs.luma.com/reference/post_v1-events-ticket-types-create"
+    ],
+    "verification": "corrected",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Free vs paid ticket",
+    "description": "Each type is free or paid in its own currency, in minor units, with no conversion. Prices format per viewer locale.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Paid needs a rail: fiat needs a Stripe server; crypto/Lightning can be verified by peers.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types",
+      "https://help.luma.com/p/creating-a-paid-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Pay-what-you-want pricing",
+    "description": "Flexible price with a suggested amount and a minimum (is_flexible, min_cents; 0 allowed).",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Price fields. Collecting money depends on the rail.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-a-paid-event",
+      "https://docs.luma.com/reference/post_v1-events-ticket-types-create"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Ticket sales window",
+    "description": "Per-ticket sales start/end for early-bird or pre-sale. Ending sales on a free ticket closes its registration.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "valid_start_at / valid_end_at checked against the local clock; organizer rejects late writes.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Per-ticket capacity / sold out",
+    "description": "A per-type cap shows 'Sold Out'. Event status shows 'Coming Soon' or 'Sold Out' based on visible tickets and sales start.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "The authoritative count comes from the linearized view.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Max tickets per guest",
+    "description": "API max_per_guest is marked 'Luma Pro calendars only' (the pricing page has no Pro plan). No UI setting exists; workarounds are disabling group registration or a hidden ticket with an unlock code.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A per-key check in the indexer.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-events-ticket-types-create",
+      "https://help.luma.com/p/group-registration"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Ticket tint colour",
+    "description": "Per-type hex colour (3 or 6 digits, alpha stripped). Setting the first colour on an event needs 'Luma Pro' per the API.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Cosmetic field.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-events-ticket-types-create"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Hidden ticket types",
+    "description": "Hide a type from the page (at least one must stay visible). Reachable via unlock codes for press, comps or post-sellout sales.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Hidden data still replicates; encrypt it or gate it with a code-derived key.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types",
+      "https://help.luma.com/p/unlock-codes"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Delete ticket type",
+    "description": "Allowed only if nobody registered for it, otherwise hide it. The API soft-deletes.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A tombstone record.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types",
+      "https://docs.luma.com/llms.txt"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Grandfathered registration terms",
+    "description": "Changing approval, price or free/paid doesn't affect existing registrations.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Snapshot terms into each registration record.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Require approval (per ticket type)",
+    "description": "Guests are Pending until a host approves or declines. Works for free and paid tickets. Invitees are auto-approved; changing the setting later doesn't change existing statuses.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Guest request plus organizer approval record in Autobase.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-up-ticket-types",
+      "https://help.luma.com/p/payment-require-approval"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Paid + approval (authorize then capture)",
+    "description": "The card is authorized at registration and captured on approval; decline or cancel releases it. Holds last about a week, and the host can still collect after. Only card, Apple Pay, Google Pay and Klarna.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "A Stripe concept. Alternative: pay-after-approval invoice.",
+    "source_urls": [
+      "https://help.luma.com/p/payment-require-approval"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Approve/decline with message, bulk",
+    "description": "Approve or decline one at a time (with answers shown) or in bulk, with an optional custom message.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Batch approval records.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-guest-list"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Waitlist",
+    "description": "An event-wide toggle. When the event is full, or every ticket is sold out or outside its sales window, the button becomes Join Waitlist (ticket capacity alone never triggers it). Guests answer questions and authorize payment without being charged. Promotion is manual only. Waitlisted guests don't count toward capacity, can't see virtual links, and can leave at any time.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Status 'waitlist'. Hide the link with encryption.",
+    "source_urls": [
+      "https://help.luma.com/p/waitlist"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Paid waitlist",
+    "description": "Paid tickets authorize on join and capture on approval. Ticket edits are blocked during a hold; fewer payment methods.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Same Stripe dependency.",
+    "source_urls": [
+      "https://help.luma.com/p/waitlist"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Group registration",
+    "description": "The buyer picks a quantity. One guest record and one QR code cover all tickets; no per-attendee names or extra wallet passes. Per-ticket QR codes are in the CSV.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An order record with N tickets.",
+    "source_urls": [
+      "https://help.luma.com/p/group-registration"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Buy additional tickets later",
+    "description": "A signed-in guest uses 'register for additional tickets'. Not available for approval-required types; coupons apply only at first registration. Hosts can add tickets manually.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An extra order tied to the same key.",
+    "source_urls": [
+      "https://help.luma.com/p/group-registration",
+      "https://help.luma.com/p/create-coupons-for-paid-events"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Custom registration questions",
+    "description": "Help-centre types: short/long text, options (single/multiple), social profile, company, checkbox, terms, website. The API adds github, telegram, phone-number and company+job title; select allows up to 250 options. Phone collection is a separate optional/required toggle. Each question can be required. No conditional or per-ticket questions; name and email are always collected. Edits apply to new registrations; deleted questions keep answers but drop from CSV. Copied on clone.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Schema in event config; answers encrypted to the organizer.",
+    "source_urls": [
+      "https://help.luma.com/p/collect-registration-questions",
+      "https://docs.luma.com/reference/get_v1-events-get.md"
+    ],
+    "verification": "corrected",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Split first/last name",
+    "description": "name_requirement first-last (Plus) replaces the single name field.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A form option.",
+    "source_urls": [
+      "https://help.luma.com/p/collect-registration-questions",
+      "https://luma.com/pricing"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Event terms / waiver with signature",
+    "description": "A Terms question with text or link content, optional must-read before accepting, and an optional typed signature. Shown as a checkbox popup that can't be pre-checked.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A signed acceptance of the terms hash by the guest's key.",
+    "source_urls": [
+      "https://help.luma.com/p/event-terms",
+      "https://docs.luma.com/reference/post_v1-events-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Wallet address collection",
+    "description": "Collect Ethereum (MetaMask, Coinbase) and Solana (Glow, Phantom) addresses with signature proof.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Signatures are peer-verifiable.",
+    "source_urls": [
+      "https://help.luma.com/p/crypto-features-in-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Token gating",
+    "description": "Require a linked Ethereum wallet holding an ERC-20 or ERC-721 token. Can be per ticket type and combined with price or approval. One registration per wallet or NFT.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs an Ethereum RPC (a public RPC works).",
+    "source_urls": [
+      "https://help.luma.com/p/crypto-features-in-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Membership-gated tickets",
+    "description": "Ticket types can be restricted to any member or specific tiers ('Members-Only', greyed for others). Visibility alone doesn't block registration via a direct link.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Organizer-signed membership credential, verified locally.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-memberships"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Members-only tier pricing via ticket types",
+    "description": "Prices can't vary by tier; create one ticket type per price, each restricted to a tier.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An allowed-tier list on each ticket type.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-memberships"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Coupons (event-level)",
+    "description": "Free, percent off or amount off. Code is 1-20 chars, case-insensitive, unique per event. Remaining uses, validity window, one ticket type or all. Terms are immutable; coupons can't be deleted, only invalidated and reactivated. Applied via 'Use a Coupon' or link, at first registration only.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Store hash(code). Redemption counts need a linearizer.",
+    "source_urls": [
+      "https://help.luma.com/p/create-coupons-for-paid-events",
+      "https://docs.luma.com/reference/post_v1-events-coupons-create"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Coupons (calendar-level)",
+    "description": "Created in the calendar Payment tab, valid on all its events, applied with ?coupon=CODE. An event coupon with the same code overrides it.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "A calendar Hyperbee of coupons.",
+    "source_urls": [
+      "https://help.luma.com/p/create-coupons-for-paid-events",
+      "https://docs.luma.com"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Bulk coupon import via CSV",
+    "description": "Columns: code, percent_off, cents_off, currency, remaining_count, ticket_name, valid_start_at, valid_end_at. Review step; imported coupons aren't editable.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local CSV parse.",
+    "source_urls": [
+      "https://help.luma.com/p/create-coupons-for-paid-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Unlock / access codes",
+    "description": "A coupon tied to a hidden ticket type acts as an access code, with an optional discount, and bypasses Sold Out.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A code-derived key reveals the hidden ticket.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-events-coupons-create",
+      "https://help.luma.com/p/unlock-codes"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Stripe connect per calendar",
+    "description": "One Stripe account per calendar; link, create or switch. Old payments stay with the old account; Stripe holds funds until verified. Only some countries are supported (India no; Indonesia link-only; Paystack extended network excluded).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs a platform server. Alternative: each organizer's own Payment Links.",
+    "source_urls": [
+      "https://help.luma.com/p/how-to-set-up-your-stripe-account"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Payment methods",
+    "description": "Base: cards, Apple Pay, Google Pay. Regional: Klarna, Alipay, Bancontact, FPX, iDEAL, Konbini, PayNow, Pix, P24, Swish (beta), TWINT, WeChat Pay (web), UPI, Zip. Approval and waitlist tickets allow only cards, wallets and Klarna. No Apple Pay in embeds.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Stripe-dependent.",
+    "source_urls": [
+      "https://help.luma.com/p/payment-methods"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Crypto payments (Solana)",
+    "description": "Tickets in SOL or USDC. Needs a treasury wallet and ID verification. Fee is 3% with Plus, 8% without. No approval or waitlist; refunds are manual.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Guest pays the organizer wallet directly; peers verify via RPC.",
+    "source_urls": [
+      "https://help.luma.com/p/crypto-payments"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Platform fees",
+    "description": "5% on Free, 0% on Plus, plus Stripe's ~2.9% + 30c. No pass-through option; the organizer absorbs fees.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A P2P app can charge none.",
+    "source_urls": [
+      "https://luma.com/pricing",
+      "https://help.luma.com/p/creating-a-paid-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Tax configuration",
+    "description": "One tax name and percent per calendar (Plus), tax-inclusive, on tickets not memberships. Checkout shows the breakdown; Luma doesn't remit. Per-event override: Enterprise in the UI, tax_config in the API (docs say 'Luma Pro'), new purchases only.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Config fields; tax computed client-side.",
+    "source_urls": [
+      "https://help.luma.com/p/taxes-and-vat",
+      "https://docs.luma.com/reference/post_v1-events-update.md"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Receipts and invoices (guest)",
+    "description": "A PDF receipt is attached when tax is charged or a business name is set. Guests download receipts or invoices from payment history and can add billing details.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client-side PDF from the signed order.",
+    "source_urls": [
+      "https://help.luma.com/p/getting-receipts-for-your-tickets",
+      "https://help.luma.com/p/customize-invoices-receipts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Invoice customization and numbering",
+    "description": "Business name, address and memo per calendar. Sequential numbers for EU/UK/NO/IS/IN Stripe accounts, random elsewhere. Hosts can generate per-guest invoices.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Gapless numbering needs a single linearizer.",
+    "source_urls": [
+      "https://help.luma.com/p/customize-invoices-receipts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Fee invoices",
+    "description": "Monthly platform-fee invoice per currency with editable billing details.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Not needed without a fee.",
+    "source_urls": [
+      "https://help.luma.com/p/fee-invoices"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Refunds (full/partial)",
+    "description": "Per order from the Guests tab, with optional ticket invalidation. The guest is emailed; the host bears fees. should_refund is available on status changes and in the API.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Fiat refunds need a Stripe server; crypto refunds are manual.",
+    "source_urls": [
+      "https://help.luma.com/p/refunding-a-guest",
+      "https://docs.luma.com/reference/post_v1-events-guests-update-status"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Refund policy text",
+    "description": "One informational policy per calendar, linked on event pages. No automatic refunds.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A text field.",
+    "source_urls": [
+      "https://help.luma.com/p/refunding-a-guest"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Disputes / chargebacks",
+    "description": "Handled in Stripe with the guest timeline as evidence. A high dispute rate risks suspension.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Stripe-specific.",
+    "source_urls": [
+      "https://help.luma.com/p/disputed-payments"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Card-declined guidance",
+    "description": "Help content for bank fraud blocks and retries.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Docs only.",
+    "source_urls": [
+      "https://help.luma.com/p/card-declined"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Proceeds and sales history exports",
+    "description": "Event Proceeds CSV and a calendar Sales History CSV with amount, refund, tax, fees and net. Payouts are managed in Stripe.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local export.",
+    "source_urls": [
+      "https://help.luma.com/p/understanding-payouts-and-event-proceeds"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Registration status emails",
+    "description": "Confirmation (sent only once the spot is secured), pending/waitlist and declined emails. Each takes a custom Markdown body (no variables; empty reverts to default). A calendar invite is attached.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email needs a relay. In-app status messages are free.",
+    "source_urls": [
+      "https://help.luma.com/p/event-registration-process",
+      "https://docs.luma.com/reference/get_v1-events-get.md"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "registration",
+    "name": "Add guests directly / comps / bulk ticket change",
+    "description": "Add guests by email or CSV as Going with a chosen ticket, skipping payment; they get a calendar invite. Existing guests: Keep or Update Tickets (bulk tier switch). Each added guest uses one send. The API update-tickets endpoint grants comps or invalidates.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Organizer-written ticket records.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event",
+      "https://help.luma.com/p/send-limits",
+      "https://help.luma.com/p/updating-guest-information"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Add/remove tickets on a guest",
+    "description": "Add free tickets of any type or invalidate them; at least one must remain. The guest gets email and push. Blocked during a payment hold.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Append ticket or invalidation records.",
+    "source_urls": [
+      "https://help.luma.com/p/updating-guest-information"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Guest list statuses, filters, bulk update",
+    "description": "Tabs with counts: Going, Pending, Waitlist, Invited, Not Going, Checked In, Not Checked In. Search by name, email or domain; sort; filter by ticket. Bulk update via CSV or pasted emails with optional notify and refund.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Hyperbee secondary indexes.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-guest-list"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Ticket invalidation history",
+    "description": "Invalidated tickets counted on the guest with causes (re-registration, decline, refund, transfer, etc.).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The append-only log gives this for free.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-guest-list"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Guest self-cancel / Not Going",
+    "description": "Guests cancel, withdraw a pending application or leave the waitlist from the More menu or with Not Going. Holds are released; no self-service refund.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The guest writes a cancel record.",
+    "source_urls": [
+      "https://help.luma.com/p/payment-require-approval",
+      "https://help.luma.com/p/luma-android-app",
+      "https://help.luma.com/p/waitlist"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "registration",
+    "name": "Ticket transfer",
+    "description": "Enterprise. Transfer some or all tickets by email. The recipient signs in, answers questions and must claim before the event; the sender's tickets are invalidated immediately. Irreversible, with reminders.",
+    "role": "attendee",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Holder signs a transfer to the new pubkey; the organizer indexer accepts it.",
+    "source_urls": [
+      "https://help.luma.com/p/ticket-transfer"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Walk-up / door registration",
+    "description": "A printed event QR lets walk-ups register on their own phones; they appear live in the check-in list. Tap-to-pay and cash are 'in development'.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "LAN/Hyperswarm sync to door devices.",
+    "source_urls": [
+      "https://help.luma.com/p/selling-in-person-tickets",
+      "https://help.luma.com/p/luma-ios-app"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Attribution / UTM capture",
+    "description": "utm_* and click IDs (gclid, fbclid, etc.) are stored per registration and shown in guest details, the CSV and API/webhook attribution_params. Insights shows utm_source; Zapier gets only utm_source.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Fields in the registration record.",
+    "source_urls": [
+      "https://docs.luma.com/reference/get_v1-events-guests-get.md",
+      "https://help.luma.com/p/event-referrals",
+      "https://help.luma.com/p/promote-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "registration",
+    "name": "Conversion tracking pixels",
+    "description": "Meta Pixel (PageView, CompleteRegistration, Purchase; fires on submit even if pending) and a Google Analytics ID (G-/GT-/UA-, purchase event), set in Calendar > Settings > Options. Plus.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Only for web-gateway pages; conflicts with privacy goals.",
+    "source_urls": [
+      "https://help.luma.com/p/facebook-meta-tracking-pixel",
+      "https://help.luma.com/p/google-analytics-measurement-id"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Multi-channel event invites",
+    "description": "Invite by email, SMS/WhatsApp (linked phone) and push (app users). One-tap accept or decline. Invitees are auto-approved but still pay.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "In-app: a signed invite record to the invitee's inbox core, or an invite link. Email/SMS/push need relays.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event",
+      "https://help.luma.com/p/notification-types"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Invite audience from contacts",
+    "description": "Invite all calendar contacts, by contact tag, or by membership tier (hidden tiers if they have members). Skips existing guests. Google Contacts (web) and phone contacts (iOS) help pick people.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Filter the organizer's contacts locally.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Invite content and custom message",
+    "description": "Event name, date, location, host/calendar, optional message, Accept Invite and View Event links. No cover image; SMS/push versions are shorter.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An invite record {eventKey, message, inviter, capability}.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Bulk import guests (paste or CSV)",
+    "description": "Paste emails or upload a CSV; emails found in any column. A Name column fills names only when the account has none. Columns matching a question label fill answers (Add Guests Directly only). Never overwrites; anyone already listed is skipped. Per-calendar import limits apply (~10MB per file).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client-side parse. Identities are pubkeys or handles.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event",
+      "https://help.luma.com/p/import-limits"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "One-time invite send",
+    "description": "Each invite can be sent only once; guests reuse the original link or register from the page.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A per-invitee sent flag.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Invites bypass approval; links not bound",
+    "description": "Registering through an invite auto-approves even with Require Approval on. Links aren't tied to an email, so forwarded links get in; hosts remove them with Not Going.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Bind each invite capability to the invitee's pubkey, or offer bearer links deliberately.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Opening invites while signed in",
+    "description": "Signed in with the invited email or phone, the plain event link shows the accept/decline UI; otherwise sign in first.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Match invites to the local keypair.",
+    "source_urls": [
+      "https://help.luma.com/p/inviting-and-adding-guests-to-your-event"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Automated reminders",
+    "description": "Email, SMS and push 1 day and 1 hour before. The 1-day reminder is skipped if the event was created less than a day ahead. None for pending or waitlisted guests. Includes a ticket link and join info; hosts get a copy. Content isn't editable.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local scheduled notifications from the replicated start time. Off-app email/SMS need a server.",
+    "source_urls": [
+      "https://help.luma.com/p/update-to-reminders-on-luma",
+      "https://help.luma.com/p/event-registration-process"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Per-event reminder toggle",
+    "description": "Web only: Blasts > System Messages > Event Reminders (API reminders_disabled). Stops reminders for guests and hosts.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A setting flag clients honour.",
+    "source_urls": [
+      "https://help.luma.com/p/update-to-reminders-on-luma",
+      "https://help.luma.com/p/disabling-or-enabling-notifications-and-reminders"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Event blasts",
+    "description": "Hosts message guests by email, SMS and push from the Blasts tab. Blasts also show on the event page. Allowed up to 7 days after the event ends.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "An append-only host announcement core. Email/SMS fan-out needs a server.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-or-scheduling-event-blasts"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Blast composer modes",
+    "description": "The web inline composer is capped at 140 characters. Advanced (web only) has no limit and adds subject, filters, scheduling and rich text (2 heading levels, images, buttons, PDFs, video, Strava and event embeds). Mobile sends plain text. External links get utm_source=luma and a luma.link redirect in emails (can't be turned off).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Markdown record; attachments in a Hyperdrive. Skip click redirects.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-or-scheduling-event-blasts",
+      "https://help.luma.com/p/rich-text-on-luma"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Blast recipient filters",
+    "description": "Filter by status (Going, Checked In, Pending, Waitlist, Invited) and by ticket type (2+ types). OR within a dimension, AND across. Not Going guests can't be messaged.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Targeting is easy; confidentiality needs per-segment or per-recipient encryption.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-or-scheduling-event-blasts",
+      "https://docs.luma.com/reference/post_v1-events-blasts-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Scheduled and edited blasts",
+    "description": "Schedule, edit or reschedule before sending. Sent blasts can be edited only on the page; deleting removes them from the page. Quarantined blasts can't be edited.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Needs a peer online at send time, or early publish with a notBefore hint.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-or-scheduling-event-blasts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Blasts on the event page, filtered by status",
+    "description": "Logged-in guests see blasts for their current status and ticket. Late registrants see earlier Going blasts.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Client filtering is easy; real access control needs segment keys.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-or-scheduling-event-blasts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Blast sender identity",
+    "description": "Sent as a visible host (username@user.luma-mail.com) or as the calendar (slug@calendar.luma-mail.com), depending on host visibility.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The sender is the host's or calendar's signing key.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-or-scheduling-event-blasts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Blast stats",
+    "description": "The Blast API object has recipient_count, email_open_count, sender type and can_edit/can_reschedule.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Open tracking needs pixels. P2P: optional read acks.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-events-blasts-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Guest-owned channel preferences",
+    "description": "Hosts can't choose channels per blast or override a guest's preferences.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local preferences.",
+    "source_urls": [
+      "https://help.luma.com/p/notification-types"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Notification preferences matrix",
+    "description": "Per-type channels (email, SMS, push): Event Invites, Reminders, Blasts, Updates, Feedback Requests, Guest Registrations, Feedback Responses, New Members, Event Submissions, Product Updates.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A per-user preferences Hyperbee.",
+    "source_urls": [
+      "https://help.luma.com/p/notification-types",
+      "https://help.luma.com/p/disabling-or-enabling-notifications-and-reminders"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "SMS / WhatsApp / Telegram by country",
+    "description": "SMS in US/CA/AU/NZ/JP/CN/KY, WhatsApp in most other countries. Telegram for sign-in codes only in some countries.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs a telecom provider. Out of scope for pure P2P.",
+    "source_urls": [
+      "https://help.luma.com/p/sms-whatsapp-messages"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Text opt-out keywords",
+    "description": "Reply X to stop texts and emails from that host. STOP stops all Luma texts (including codes) but not email. START from the same number re-enables; on WhatsApp, REACTIVATE or SUBSCRIBE also work.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "SMS bridge only. P2P equivalent: mute a feed.",
+    "source_urls": [
+      "https://help.luma.com/p/sms-whatsapp-messages"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Unsubscribe / unfollow a host or calendar",
+    "description": "Via email unsubscribe (can also decline pending invites), text X, or luma.com/settings/preferences. Stops invites, newsletters, reminders, updates and blasts, but not receipts or existing RSVPs. Hosts can't re-add someone who unsubscribed.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Stop replicating and publish a signed opt-out the host's client must respect.",
+    "source_urls": [
+      "https://help.luma.com/p/unsubscribing-from-a-host",
+      "https://help.luma.com/p/discovering-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Calendar invite (.ics) in confirmation",
+    "description": "Confirmation emails attach an .ics invite; updates send a new one. Multi-day events become all-day. Without DMARC on a custom domain, Gmail RSVP buttons disappear.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Generate .ics locally for export. Emailing needs a server.",
+    "source_urls": [
+      "https://help.luma.com/p/event-registration-process",
+      "https://help.luma.com/p/troubleshooting-google-calendar-invites"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Per-guest ticket QR code",
+    "description": "Every registration gets a QR: luma.com/check-in/{event}?pk={key}. A guest key (g-...) covers all tickets; a ticket key covers one. Shown in email, on the event page, in the app and on wallet passes.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A host-signed ticket (ticketId, eventKey, holder pubkey, sig) verified offline.",
+    "source_urls": [
+      "https://help.luma.com/p/check-in",
+      "https://help.luma.com/p/external-check-in-integration"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Mobile wallet passes",
+    "description": "Apple/Google Wallet passes for in-person events with event, time, venue, name, ticket type, host and QR. Auto-update on changes; marked expired on cancel or decline; work offline. No pass for extra group tickets.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs issuer certificates and a pass update service. P2P alternative: in-app offline ticket.",
+    "source_urls": [
+      "https://help.luma.com/p/mobile-wallet-passes"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Check-in scanner",
+    "description": "Manage > Check In Guests on web, iOS and Android (phone camera apps won't work). Manual search by name or email. In-person events only.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Each scanner device writes check-ins to its own writer core in the event Autobase; works offline.",
+    "source_urls": [
+      "https://help.luma.com/p/check-in",
+      "https://help.luma.com/p/luma-ios-app"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Standard vs Express scan modes",
+    "description": "Standard shows guest details to confirm or undo. Express checks in on scan with colour feedback, recent scans, 'Not Valid' for bad tickets and a picker for multi-ticket guests.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local verification UI. Cross-device double scans need conflict resolution.",
+    "source_urls": [
+      "https://help.luma.com/p/check-in"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Default and locked scan mode",
+    "description": "Hosts set the team's default scan mode and can lock it.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Event config record.",
+    "source_urls": [
+      "https://help.luma.com/p/check-in"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Check-in staff role",
+    "description": "Plus. Staff scan, check in and search the guest list, seeing name, email, phone, photo, status, ticket, amount, coupon and answers (no field hiding). They can't export, edit, message or approve.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A limited writer for check-in records plus a roster decryption key. Field-level hiding is easy to add.",
+    "source_urls": [
+      "https://help.luma.com/p/check-in",
+      "https://help.luma.com/p/adding-hosts-and-managers-to-your-event",
+      "https://luma.com/pricing"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Restrict ticket types per staff member",
+    "description": "Limit which ticket types a staff member's Express scanner auto-checks in (zones/sessions). No plan stated, though staff itself needs Plus.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Per-staff filter enforced by the client.",
+    "source_urls": [
+      "https://help.luma.com/p/check-in"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "External check-in integration",
+    "description": "Third-party systems read the QR URL and look up the guest via GET /v1/events/guests/get with the guest or ticket key (API is Plus).",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Publish an open ticket+signature format for offline verification.",
+    "source_urls": [
+      "https://help.luma.com/p/external-check-in-integration",
+      "https://docs.luma.com/reference/get_v1-events-guests-get.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Hardware scanners",
+    "description": "Zebra TC52/TC57 and other Android handhelds run the normal Android app. Recommended for 5k+ events. Setup guidance goes through the Enterprise form, but scanners aren't stated to be Enterprise-only.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Any Android device running the Pear mobile app; keyboard-wedge scanners on desktop.",
+    "source_urls": [
+      "https://help.luma.com/p/hardware-scanners"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Badge printing",
+    "description": "Onsite badge printing is Enterprise. On any plan, make badges from the CSV check-in URLs with a QR generator and template (some use Brother QL printers; no official recommendation).",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Generate badge PDFs locally.",
+    "source_urls": [
+      "https://help.luma.com/p/printing-event-badges"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Per-ticket check-in tracking",
+    "description": "Check-in tracked per ticket (checked_in_at), separate from approval. Filter and sort by checked-in status and time. Contacts show an events-checked-in count.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Check-in records keyed by ticketId.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-guest-list",
+      "https://docs.luma.com/reference/get_v1-events-guests-get.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Post-event feedback survey",
+    "description": "An automatic email after the event (default when it ends, delay up to P30D, never before start) to all Going guests. Emoji rating plus optional text; ratings can change but not be removed. Results in Insights.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A signed feedback record; latest value wins. Prompt in-app at event end.",
+    "source_urls": [
+      "https://help.luma.com/p/collect-feedback-from-your-event-guests",
+      "https://docs.luma.com/reference/post_v1-events-create.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Feedback settings and export",
+    "description": "Turn off per event in Blasts; calendar default in Settings > Options. Export CSV per event or calendar-wide.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local CSV export.",
+    "source_urls": [
+      "https://help.luma.com/p/collect-feedback-from-your-event-guests"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Host notifications",
+    "description": "Managers get email and push for new registrations and email for feedback. Calendar admins get new-member and submission alerts.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Host client watches the Autobase. Background push needs a relay.",
+    "source_urls": [
+      "https://help.luma.com/p/notification-types"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Direct messages and group chats",
+    "description": "1:1 DMs and named group chats with avatars and admins (a sole admin must hand over before leaving). Reactions, replies, deleting messages, mute, archive, mark read and search. Also on the web at luma.com/chat.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Autobase chat rooms (Keet pattern). Deletes are tombstones.",
+    "source_urls": [
+      "https://help.luma.com/p/chat.md",
+      "https://apps.apple.com/app/id1546150895"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Event chat",
+    "description": "Hosts start it from the app (Manage Event > Start Event Chat); also usable on the web. Hosts and approved guests are added, later registrants join, cancellers are removed. Hosts delete messages and close/reopen it. Archive is per user.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Autobase room whose writer set follows the approved roster. Rotate keys on removal.",
+    "source_urls": [
+      "https://help.luma.com/p/helpart-DnOeIjKug0qzhCG/event-chat"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Close chat / archive",
+    "description": "Admins close a chat for everyone (read-only) and reopen it. Archive is per user. DMs can't be closed; DMs and event chats can't be left.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Admin control record plus a local flag.",
+    "source_urls": [
+      "https://help.luma.com/p/chat.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Report user / report guests",
+    "description": "Report users in chat for spam or harassment; hosts 'Report Guests' from the guest table.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Central moderation needs a service. P2P: local blocks and shared blocklists.",
+    "source_urls": [
+      "https://help.luma.com/p/chat.md",
+      "https://help.luma.com/p/expanded-guest-table"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Blocking users",
+    "description": "Blocked users can't message you, invite you, add you as host, or register for your events. Their pending invites are declined and DMs archived; group/event chats and existing RSVPs are unaffected. Blocks are per side; manage them in the app under Settings > Permissions > Blocked Users.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A local blocklist; the organizer indexer ignores blocked keys.",
+    "source_urls": [
+      "https://help.luma.com/p/blocking-users"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Attendee profile",
+    "description": "Photo (replaceable, not removable), name or display name, bio, socials (Instagram, X, YouTube, TikTok, LinkedIn, website). Public at luma.com/user/{username}; usernames 3-15 chars.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A profile record per keypair. Unique usernames need a registry; use petnames.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-profile"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Account identity: multiple emails, one phone",
+    "description": "Extra linked emails route invites to one account. One phone per account and one account per phone. Accounts can't be merged.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Identity is a keypair. Linking email/phone needs verification. Multi-device via pairing.",
+    "source_urls": [
+      "https://help.luma.com/p/merging-luma-accounts",
+      "https://help.luma.com/p/managing-your-profile"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "Sign-in methods",
+    "description": "Email 6-digit code, phone code (SMS, WhatsApp, Telegram), optional password, passkeys, Google/Apple (auto-link by email) and enterprise SSO.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "No sign-in: a local keypair with seed backup and device pairing.",
+    "source_urls": [
+      "https://help.luma.com/p/signing-in"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Linked accounts and wallets",
+    "description": "Link Google, Apple and Zoom on web and connect Ethereum/Solana wallets (shown on guest records). The username also sets the personal-calendar sender address.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Signed attestations in the profile core. OAuth links need a server.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-profile"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Account deletion",
+    "description": "Permanent. First cancel upcoming events, Plus, paid memberships and paid tickets to upcoming events, and leave or delete team calendars.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Can't force-delete from peers. Publish a tombstone that honest peers honour.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-your-profile"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Theme, app icon, language",
+    "description": "Light/Dark/System theme and custom iOS app icons. Web UI in 49 language variants; App Store lists 43. A saved account language sets email language. Machine translation of event title and description.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local preferences. Translation needs an on-device model or API.",
+    "source_urls": [
+      "https://help.luma.com/p/languages",
+      "https://help.luma.com/p/managing-your-profile"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Guest CSV export",
+    "description": "All or filtered guests in current sort order: name, email, phone, date, status, ticket, check-in/join, qr_code_url, amounts, coupon, UTMs, one column per question. One row per ticket. Requires Confirm Access.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local export.",
+    "source_urls": [
+      "https://help.luma.com/p/download-guest-csv"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Expanded guest table",
+    "description": "Full-screen table with all answers, shift-click select and click-to-copy email. Bulk status update with notify, refund and message; Approve All / Decline All; Update Guests from a list.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Batch writes.",
+    "source_urls": [
+      "https://help.luma.com/p/expanded-guest-table"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Names and emails are guest-owned",
+    "description": "Hosts can't edit a guest's name or email. To fix an email, re-add and set the old record Not Going. Hosts can name 'Anonymous' guests.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The profile is the user's own core; hosts add local aliases.",
+    "source_urls": [
+      "https://help.luma.com/p/updating-guest-information"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "attendee",
+    "name": "Referral share links",
+    "description": "After registering, guests are prompted to share a link. Registrations through it are credited to the referrer in Insights and guest details. Public events only.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "The link carries the referrer's pubkey, stored on the registration.",
+    "source_urls": [
+      "https://help.luma.com/p/event-referrals",
+      "https://help.luma.com/p/event-insights"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Self-service unbounce",
+    "description": "Luma stops emailing bounced addresses. Guests reactivate by emailing unbounce@luma-mail.com with subject 'Reactivate'.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email bridge only.",
+    "source_urls": [
+      "https://help.luma.com/p/email-delivery-open-troubleshooting"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "attendee",
+    "name": "iOS app",
+    "description": "Discovery with location/date filters, registration, tickets and Wallet, chat and push. Hosts get templates, poster sharing, QR walk-up registration, contact sync, re-inviting past guests, check-in, Insights, guest edits/refunds and route maps (Strava, AllTrails, GPX).",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Pear mobile (Bare) runs the same cores.",
+    "source_urls": [
+      "https://help.luma.com/p/luma-ios-app",
+      "https://apps.apple.com/app/id1546150895"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Android app",
+    "description": "Create events, check-in, event chats, live guest list, check-in-only access (Plus), tickets, cancel/withdraw, DMs. No advanced customization, calendar management, analytics or payment settings.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Same via Bare/Pear mobile.",
+    "source_urls": [
+      "https://help.luma.com/p/luma-android-app"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Live Activities (iOS)",
+    "description": "From 1 hour before (up to 4 h): countdown, LIVE badge, venue/platform, Directions, Open Ticket, Join and (hosts) Open Scanner.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local ActivityKit integration; remote updates need APNs.",
+    "source_urls": [
+      "https://help.luma.com/p/live-activities"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Siri, Spotlight and Shortcuts",
+    "description": "Siri reports schedule and registration status and searches/opens events. Spotlight indexes your events. Shortcuts: Get My Schedule, Check My Event Registration, Find, Open, Search, Create Event (opens the app). Read-only. Requires iOS 27+ (only Create Event earlier).",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Native App Intents over local data.",
+    "source_urls": [
+      "https://help.luma.com/p/siri"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "attendee",
+    "name": "Accessibility support",
+    "description": "Keyboard and screen-reader support; VoiceOver, Voice Control and Larger Text on iOS. No VPAT.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "UI concern.",
+    "source_urls": [
+      "https://help.luma.com/p/accessibility"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Personal calendar",
+    "description": "Created at signup, default home for new events, single manager, undeletable (delete the account instead).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "One core/Hyperbee per user keypair, created on first launch.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-events-with-calendars",
+      "https://help.luma.com/p/deleting-a-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "MVP"
+  },
+  {
+    "area": "calendars",
+    "name": "Team calendar creation",
+    "description": "Web only. Name required. Optional description, cover (upload, gallery, Unsplash), avatar (random if none), tint (auto from avatar), URL slug and location (city or Global). Mobile apps can't create calendars.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A calendar is an Autobase whose view is a Hyperbee. Readable slugs need a naming layer.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-a-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Quick-create calendar from event editor",
+    "description": "'Create Calendar' in the event editor's calendar picker asks for name, description, avatar and tint, then puts the event there.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "UI shortcut.",
+    "source_urls": [
+      "https://help.luma.com/p/creating-a-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar profile and branding",
+    "description": "Settings > Display: name, slug, description, avatar, cover, social image, tint, city location (timezone, coordinates), website, Instagram/X/YouTube/TikTok/LinkedIn. The calendar colour is used in newsletters.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Profile record; images in a Hyperdrive. Geocoding needs a gazetteer.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-calendars-update.md",
+      "https://help.luma.com/p/creating-a-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Convert personal calendar to team",
+    "description": "Completing 'Set Up Your Calendar' in Settings > Display converts a Personal Calendar to a Team Calendar in place (documented mainly for Plus bought by mistake). Events and Plus stay; admins and memberships can then be added.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Bootstrap an Autobase with the original key as first writer.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-events-with-calendars"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar admins (equal permissions)",
+    "description": "All admins equal, no owner: events, newsletters, guests, settings, admins, payments, delete. Free up to 3; Plus includes 5, extra seats $12/mo ($9 annual). Being admin doesn't add events to 'Your Events'.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Autobase writer set; needs rules for concurrent removals.",
+    "source_urls": [
+      "https://help.luma.com/p/understanding-calendar-permissions",
+      "https://help.luma.com/p/luma-plus",
+      "https://luma.com/pricing"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Admin seat purchase enforcement",
+    "description": "On Plus, adding admins beyond paid seats fails via API and must be done in the app with a seat purchase.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Business gate; P2P writer sets have no seat limit.",
+    "source_urls": [
+      "https://docs.luma.com",
+      "https://help.luma.com/p/luma-plus"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar status: Active / Coming Soon / Archived",
+    "description": "Team calendars only. Coming Soon hides the event list from non-admins but accepts follows and submissions. Archived blocks follows/submissions, leaves Discover and is noindex; the page stays public. Reversible.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "launch_status field. Hiding lists needs encryption.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-status"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Delete calendar",
+    "description": "Settings > Options. First cancel upcoming events, remove paid recurring members and cancel Plus. Removes all events, guest lists and analytics and frees the slug. Unrecoverable.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Can't guarantee deletion; tombstone and stop seeding.",
+    "source_urls": [
+      "https://help.luma.com/p/deleting-a-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Account/calendar takeover policy",
+    "description": "Only an existing admin can add admins; with none left the calendar is lost. Support can archive a deceased owner's calendar. No transfers.",
+    "role": "admin",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Same as key loss; encourage multiple writers and backups.",
+    "source_urls": [
+      "https://help.luma.com/p/taking-over-an-account-or-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar event defaults",
+    "description": "Defaults for new events only. API event_defaults: visibility (public, members-only, private), show_guest_list, feedback_email.enabled. The UI documents only Settings > Options > Event Visibility (Public/Private).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A settings record read by the create form.",
+    "source_urls": [
+      "https://docs.luma.com/reference/get_v1-calendars-get.md",
+      "https://help.luma.com/p/setting-your-event-visibility"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Public calendar page",
+    "description": "Title, description, social icons, Follow, 'Featured in' link, RSS icon (Add iCal Subscription), map icon, Submit Event, month header with day dots, Upcoming/Past tabs. Cards show cover, title, host, venue or Zoom, +N attendee avatars. Pending-approval count for submitters; membership tiers with price and Join.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Rendered from the replicated calendar Hyperbee; web viewers need a gateway.",
+    "source_urls": [
+      "https://luma.com/ls",
+      "https://help.luma.com/p/luma-calendar-overview"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar map view",
+    "description": "Each calendar has a /<slug>/map page.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client-side map; tiles need a server or offline tiles.",
+    "source_urls": [
+      "https://help.luma.com/p/luma-calendar-overview",
+      "https://help.luma.com/p/tech-weeks"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Event tags for calendar filtering",
+    "description": "Admins create tags (name, colour) in Settings > Tags and apply several per event. Shown as filters if they have an upcoming event. Deleting removes from all events. Submitters pick from existing tags.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Tag records plus an index; filtering is a range query.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-event-tags"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Follow a calendar",
+    "description": "Follow on calendar pages and Discover for events, newsletters and reminders; syncs across devices. You follow calendars, not users. Followers appear in People.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Replicate the core; send a signed follow to an admin inbox.",
+    "source_urls": [
+      "https://help.luma.com/p/discovering-events",
+      "https://help.luma.com/p/managing-calendar-contacts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Preferences management page",
+    "description": "luma.com/settings/preferences lists followed calendars and subscribed cities/categories with unfollow buttons (only active follows, not imports).",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local list in the user's own Hyperbee.",
+    "source_urls": [
+      "https://help.luma.com/p/discovering-events",
+      "https://help.luma.com/p/unsubscribing-from-a-host"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "iCal subscription feeds",
+    "description": "Personal feed (hosted plus registered/waitlisted/pending), per-calendar feed and per-city feed. Multi-day as all-day. Refresh depends on the calendar app (Google 12-24 h).",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Calendar apps poll HTTP, so feeds need a gateway. One-off .ics export is local.",
+    "source_urls": [
+      "https://help.luma.com/p/ical-syncing"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Submit event to another calendar",
+    "description": "Paste an event URL, create from the calendar page, or submit an external event. Tags optional. The managing calendar keeps ownership. Private, members-only and multi-session events can't be submitted.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "A signed submission to the target's inbox; needs an online admin or seeder.",
+    "source_urls": [
+      "https://help.luma.com/p/submitting-events-to-calendars"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar submission policy",
+    "description": "Accept from anyone, admins only, or require manage access (submitters consent to admins getting full manage access; external events exempt). Accept or reject external events. Archived blocks submissions.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Policy flags; manage access means adding admin keys as writers.",
+    "source_urls": [
+      "https://help.luma.com/p/submitting-events-to-calendars",
+      "https://docs.luma.com/reference/post_v1-calendars-events-add.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Submission review queue",
+    "description": "Admins approve or decline. Remove has an off-by-default 'Notify Submitter' option and message. Admins' 'Add Event' posts immediately. Also via API and webhook.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Inbox entries; approval writes to the listing.",
+    "source_urls": [
+      "https://help.luma.com/p/submitting-events-to-calendars",
+      "https://docs.luma.com/reference/webhook_calendar_event_submitted.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "External events on calendars",
+    "description": "Off-platform listings (URL, name, start, duration, timezone, address, host). No cover, guest list, check-in, payments or blasts. API filters platforms=luma/external.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A link-only record type.",
+    "source_urls": [
+      "https://docs.luma.com/reference/post_v1-calendars-events-add.md",
+      "https://help.luma.com/p/submitting-events-to-calendars"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Resubmission rules",
+    "description": "If the calendar removed it, either side can re-add; if the host removed it, only event managers can resubmit.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Record who removed it.",
+    "source_urls": [
+      "https://help.luma.com/p/submitting-events-to-calendars"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Collaborating Calendars (beta)",
+    "description": "Several calendars co-manage one event (guests, blasts, approvals, check-in, tickets, refunds); the managing calendar still provides Stripe, branding and Plus. Closed beta.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "easy",
+    "p2p_note": "P2P-native: add several calendars' admin keys as writers.",
+    "source_urls": [
+      "https://help.luma.com/p/collaborating-calendars"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Aggregator calendars (Tech Week model)",
+    "description": "A team calendar collects independent events via submissions into a schedule with list, map and tag filters. Models: listing-only, shared management, central ownership.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Inbox plus tags plus map; a seeder keeps it available.",
+    "source_urls": [
+      "https://help.luma.com/p/tech-weeks"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendars Home dashboard",
+    "description": "luma.com/home/calendars lists calendars you manage; manage tabs are Events, People, Newsletters, Members, Settings (Display, Options, Tags, Send Limit, Embed, Luma Plus).",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local index of calendars where your key is a writer.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-calendar-contacts",
+      "https://help.luma.com/p/send-limits"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Discover page",
+    "description": "Popular Events near you, Browse by Category tiles with counts, Featured Calendars with Follow, Explore Local Events by region and city.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs an index: topic swarms crawled locally, or a curator-signed index served by seeders.",
+    "source_urls": [
+      "https://luma.com/discover"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Featured and Popular Calendars carousels",
+    "description": "Featured Calendars on Discover; Popular Calendars and 'Upcoming Major Events' (Coming Soon calendars) on category pages.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Curator-signed Hyperbee; popularity needs a crawler.",
+    "source_urls": [
+      "https://luma.com/discover",
+      "https://luma.com/ai"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "City pages",
+    "description": "Pages like luma.com/sf (50+ cities): blurb, Subscribe, map, Submit Event (sign-in), ~20 curated events, iCal feed.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Curator Hyperbee plus a city topic.",
+    "source_urls": [
+      "https://luma.com/sf",
+      "https://help.luma.com/p/featuring-your-event-on-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "City subscription and weekly digest",
+    "description": "Weekly email Sundays 6pm with ~20 events from the city page; also feeds the Home tab.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "In-app subscription is easy; email digest needs a mail server.",
+    "source_urls": [
+      "https://help.luma.com/p/discovering-events",
+      "https://help.luma.com/p/featuring-your-event-on-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Category pages",
+    "description": "Pages like luma.com/ai: cover, event and subscriber counts, Subscribe, Upcoming Major Events, Popular Calendars, Nearby Events with map. Categories are assigned automatically; hosts can't pick.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Auto-categorising needs an indexer; or host-chosen topics.",
+    "source_urls": [
+      "https://luma.com/ai",
+      "https://help.luma.com/p/featuring-your-event-on-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Search",
+    "description": "From the app's Discover tab or city/category pages, ranked by location. Only public in-person events at a recognised location appear. 'Virtual Events' location filter uses your timezone. New or small events may take time to appear.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Local full-text over replicated data; global search needs a crawler.",
+    "source_urls": [
+      "https://help.luma.com/p/searching-for-events"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Map browsing",
+    "description": "Browse events on a map and pan to other cities. Restricted-location events show only an approximate area.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Tiles need a server; publish fuzzed coordinates.",
+    "source_urls": [
+      "https://help.luma.com/p/searching-for-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Personalized Home feed",
+    "description": "iOS/Android Home is built from followed calendars and subscribed cities/categories, plus suggestions by interests and location.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Computed locally; a privacy win.",
+    "source_urls": [
+      "https://help.luma.com/p/discovering-events"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Featured events curation",
+    "description": "Curators and automation pick events for city/category pages (no submission). Criteria: public in-person in region, broad appeal, host profiles, clear description, uncropped 1:1 cover, ~5+ guests, invite acceptance, registration fully on Luma, Maps-resolvable venue. Weekly city newsletter. Hosts notified; opt out via Overview.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Curator keys publish featured lists; opt-out flag honoured.",
+    "source_urls": [
+      "https://help.luma.com/p/featuring-your-event-on-luma"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "'Featured in' badge",
+    "description": "Shown on featured events and calendars, linking to the explore page. Not a host setting.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Client checks the event key in a curator's signed index.",
+    "source_urls": [
+      "https://help.luma.com/p/featuring-your-event-on-luma",
+      "https://luma.com/ls"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar newsletters",
+    "description": "Newsletters tab: drafts (autosave, private to author), subject, rich text, upcoming events. Preview, test send, send now or schedule. Audience: everyone, member tag or tier, with count. Needs unlocked sends.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "In-app posts to the calendar core (targeted ones encrypted). Email needs SMTP.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-newsletters",
+      "https://help.luma.com/p/send-limits"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Newsletter stats",
+    "description": "Sent, opens, clicks, unsubscribes, per-recipient stats. Bounced and spam addresses skipped and shown as 'Skipped'.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email/HTTP tracking; P2P acks optional.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-newsletters"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Newsletter branding and sender",
+    "description": "Calendar tint for links/buttons. From <slug>@calendar.luma-mail.com; replies go to the longest-serving admin. Enterprise custom domain.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email only.",
+    "source_urls": [
+      "https://help.luma.com/p/sending-newsletters"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar People (contacts) tab",
+    "description": "Followers, imports and registrants. Sort by name, events attended, checked in, revenue, joined. Filter by tag, tier, status; detail panel.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Admin-only encrypted Hyperbee built from follows and registrations.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-calendar-contacts",
+      "https://help.luma.com/p/download-calendar-people-csv"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Member (contact) tags",
+    "description": "Admin-only tags (name, colour) in Settings > Tags > Member Tags; applied manually or at import; used to filter, invite and target newsletters.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "In the private admin bee.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-calendar-contacts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Bulk contact import",
+    "description": "People > Add People: CSV/Excel (~10MB) or pasted emails, with tags and/or a tier. Matched by email, re-import re-tags without duplicates. Import limits apply.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email lists only matter with email delivery.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-calendar-contacts",
+      "https://help.luma.com/p/import-limits"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Import limits",
+    "description": "An unpublished per-calendar cap on new people from invites and imports. Room returns as people register or follow. 'Request Increase' banner reviewed by Luma.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Anti-spam control; not needed without central email.",
+    "source_urls": [
+      "https://help.luma.com/p/import-limits"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Block, remove and restore contacts",
+    "description": "Block stops following or joining events. Remove opts out of invites/newsletters (can re-follow). Inactive lists: Unsubscribed (masked, not restorable) and Removed by Admin (restorable). Bounces stay active but skipped.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Key blocklist enforced by registration validators.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-calendar-contacts"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Export People CSV",
+    "description": "All or filtered: name, email, join date, tags, tier and status, revenue, events registered and checked in. Inactive lists can't be exported.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local export.",
+    "source_urls": [
+      "https://help.luma.com/p/download-calendar-people-csv"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar memberships (tiers)",
+    "description": "Team calendars only. Tiers are Free, One-time or Subscription (monthly/yearly via Stripe), with name, description, colour, hidden flag, questions and Require Approval. Visible tiers show price and Join. One tier per person per calendar. Join methods: open, approval, manual add, import, API (skip_payment).",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Free tiers: signed attestations and group keys. Paid/recurring needs a payment server.",
+    "source_urls": [
+      "https://docs.luma.com/reference/get_v1-memberships-tiers-list.md",
+      "https://help.luma.com/p/calendar-memberships"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Membership applications and approval",
+    "description": "With approval, applicants are Pending and can't use member-only events. Paid tiers charge on approval; 3DS cards get a payment link with reminders. Approval sends email/push; decline sends nothing.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Applications to admin inbox; approvals written back.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-memberships"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Member-only content gating",
+    "description": "Calendar-wide event list can be Public or Member-Only (non-members see join prompts; direct links still work). Member-only events, tier-restricted tickets and tier-targeted newsletters.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Encrypt with a tier group key; rotate on removal.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-memberships",
+      "https://help.luma.com/p/setting-your-event-visibility"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "calendars",
+    "name": "Member self-service",
+    "description": "Status card with tier and join date; membership page to leave or update payment. luma.com/settings/payment lists subscriptions and history; cancel keeps access to period end.",
+    "role": "attendee",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Billing needs a payment server.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-memberships",
+      "https://help.luma.com/p/managing-subscriptions"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Membership administration",
+    "description": "Add members manually (welcome email, one send), by import or API. Remove from tier or calendar (cancels, no refund). Hide or delete tiers. Price changes apply to new joiners. Stripe can't be unlinked with recurring tiers.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Records work P2P; subscriptions need a server.",
+    "source_urls": [
+      "https://help.luma.com/p/calendar-memberships"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Calendar embed widget",
+    "description": "Iframe of all upcoming events from Settings > Embed; the calendar must be public.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs an HTTP gateway or static export.",
+    "source_urls": [
+      "https://help.luma.com/p/embed-luma-on-your-website",
+      "https://www.beehiiv.com/support/article/42004420712599"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Event embeds (button and page)",
+    "description": "Checkout button overlay (event id, coupon, utm_source, ticket attributes; forwards UTM, gclid, fbclid, li_fat_id) or iframe page (?tt= preselects ticket). GA4 purchase events and a luma:purchase postMessage. No Apple Pay in embeds.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs an HTTP gateway plus a bridge that relays signed registrations.",
+    "source_urls": [
+      "https://help.luma.com/p/embed-luma-on-your-website"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "calendars",
+    "name": "Search-engine indexing",
+    "description": "Public events and calendars indexed by Google and Bing; private events and archived calendars noindex.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs a public HTTP gateway.",
+    "source_urls": [
+      "https://help.luma.com/p/setting-your-event-visibility",
+      "https://help.luma.com/p/calendar-status"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Public REST API",
+    "description": "Plus. JSON API at public-api.luma.com with x-luma-api-key. Routes /v{n}/{resource}/{action}; GET reads, POST writes; per-route versions; cursor pagination.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local JS/RPC API over Hyperbee; optional HTTP bridge peer.",
+    "source_urls": [
+      "https://docs.luma.com/reference/getting-started-with-your-api",
+      "https://docs.luma.com/reference/api-conventions.md",
+      "https://help.luma.com/p/luma-api.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API keys (calendar and organization)",
+    "description": "Calendar keys cover one calendar; org keys cover all org calendars (x-luma-calendar-id header). Up to 25 keys, 10 new per day, under Settings > Developer.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Delegated writer keys or capabilities; revoke by removing.",
+    "source_urls": [
+      "https://help.luma.com/p/luma-api.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API rate limits",
+    "description": "200/min per calendar (keys and OAuth tokens), 500/min per org key, shared GET/POST. 429 blocks for 1 minute. X-RateLimit-* and Retry-After headers. Contact support for more.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Not needed locally; a bridge can self-limit.",
+    "source_urls": [
+      "https://docs.luma.com/reference/rate-limits.md"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "OpenAPI 3.1 spec and docs",
+    "description": "Spec public at public-api.luma.com/openapi.json, plus llms.txt and code examples.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Publish schemas for the app's record types.",
+    "source_urls": [
+      "https://docs.luma.com/reference/getting-started-with-your-api",
+      "https://docs.luma.com/llms.txt"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API changelog and versioning",
+    "description": "Public changelog; legacy nested routes (/v1/event/*) keep working after flat replacements; deprecated fields (api_id) dropped only on new routes.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Version record schemas (hyperschema) and keep old readers working.",
+    "source_urls": [
+      "https://docs.luma.com/reference/changelog.md",
+      "https://docs.luma.com/reference/api-conventions.md"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API: events",
+    "description": "Create, update, get; two-step cancel; suppress_email; create_meeting (zoom / google-meet); custom email Markdown; tax_config.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Records in the organizer Autobase.",
+    "source_urls": [
+      "https://docs.luma.com/reference/changelog.md",
+      "https://public-api.luma.com/openapi.json"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API: guests",
+    "description": "List (filter by status, sort, paginate), get by guest/ticket key or email, add, update status, update tickets, send invites.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Organizer ops over indexed RSVPs.",
+    "source_urls": [
+      "https://public-api.luma.com/openapi.json"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API: hosts",
+    "description": "Add, update (access level, visibility) and remove hosts, including check-in staff. Creator can't be removed.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Host list in the event record.",
+    "source_urls": [
+      "https://docs.luma.com/llms.txt"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API: ticket types and coupons",
+    "description": "CRUD on ticket types and event/calendar coupons.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Definitions are easy; paid checkout needs a processor.",
+    "source_urls": [
+      "https://public-api.luma.com/openapi.json"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "API: blasts",
+    "description": "List, get, create, update, delete blasts with recipient groups and scheduling.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "In-app messages easy; email needs relay.",
+    "source_urls": [
+      "https://public-api.luma.com/openapi.json"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "API: calendars, contacts, tags, memberships",
+    "description": "Calendar get/update; list/lookup/add/approve/reject events; admins; contacts import/block/remove/restore; contact and event tag CRUD; membership tiers and members.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Ops on calendar Autobases.",
+    "source_urls": [
+      "https://public-api.luma.com/openapi.json",
+      "https://docs.luma.com/reference/changelog.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API: organizations",
+    "description": "List org admins, calendars and events; create calendars; transfer events between calendars.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Org Autobase of calendar refs.",
+    "source_urls": [
+      "https://docs.luma.com/llms.txt"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "API: utilities",
+    "description": "get-self, entity lookup by slug, place search, cover search, image upload URLs.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Images in Hyperdrive; place search needs a geocoder.",
+    "source_urls": [
+      "https://public-api.luma.com/openapi.json"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Webhooks",
+    "description": "Settings > Developer: URL plus event types (calendar.event.added/submitted, calendar.person.subscribed/unsubscribed, event.created/updated/canceled, guest.registered/updated/refunded, ticket.registered). Also via API.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Peers watch core appends; HTTP webhooks need a bridge peer.",
+    "source_urls": [
+      "https://help.luma.com/p/webhooks.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Webhook signing, retries, delivery log",
+    "description": "HMAC-SHA256 over 'timestamp.body' (whsec_ secret). 3 retries at 1, 2, 4 min; 410 pauses. Delivery list; pause, resume, delete.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Bridge implements it; cores are already signed.",
+    "source_urls": [
+      "https://help.luma.com/p/webhooks.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Opt-out mirroring webhook",
+    "description": "calendar.person.unsubscribed fires on unsubscribe, block or spam report (unspecified which) with the full email, for CRM mirroring. No backfill.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Signed opt-outs replicate natively; CRM push needs a bridge.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-calendar-contacts"
+    ],
+    "verification": "added (verifier missed-feature)",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Zapier integration",
+    "description": "Plus. 7 triggers (Calendar Event Added, Calendar Person Subscribed, Event Created/Updated, Guest Registered/Updated, Ticket Registered) and 1 action (Add Person to Calendar with tags). OAuth, one calendar. Most triggers only for managed events. Debug Zapier log in Settings > Developer.",
+    "role": "organizer",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs a hosted HTTP endpoint.",
+    "source_urls": [
+      "https://help.luma.com/p/zapier.md"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "HubSpot integration",
+    "description": "Enterprise, org-level, one-way. Events become marketing events; approved guests become contacts (empty fields only) with Registered/Attended/Cancelled; answers in a 'Luma' group. No backfill.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Server-side OAuth sync.",
+    "source_urls": [
+      "https://help.luma.com/p/hubspot.md"
+    ],
+    "verification": "corrected",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Salesforce integration",
+    "description": "One-way org sync: events to Campaigns, guests to Contacts, registrations to Campaign Members. Managed package and integration user; no sandbox.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Server-side connector.",
+    "source_urls": [
+      "https://help.luma.com/p/salesforce.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Marketo integration",
+    "description": "Listed among Enterprise syncs.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Server-side connector.",
+    "source_urls": [
+      "https://help.luma.com/p/enterprise-overview.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Luma MCP server",
+    "description": "mcp.luma.com with OAuth (Client ID Metadata Documents): lookup, event, calendar, profile and people tools; can't cancel events or change account settings. Any plan. (Events verifier found no official MCP; platform verifier confirmed the help page.)",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "A local MCP server wrapping the app's API.",
+    "source_urls": [
+      "https://help.luma.com/p/mcp.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "OAuth tokens for third-party apps",
+    "description": "OAuth 2.0 tokens share the calendar rate limit; used by Zapier and MCP.",
+    "role": "organizer",
+    "tier": "unknown",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Delegated keypairs or capability tokens.",
+    "source_urls": [
+      "https://help.luma.com/p/enterprise-security.md",
+      "https://docs.luma.com/reference/rate-limits.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Weekly send limits and Unlock Sends",
+    "description": "Invites and newsletters per calendar per week: 15 until unlocked, 500 Free, 5,000 Plus, add-ons 10k-100k ($50-$800/mo). Resets Monday 00:00 UTC; over-limit batches fail entirely. Messages to registered guests unlimited.",
+    "role": "admin",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Only for email/SMS relays; P2P is pull-based.",
+    "source_urls": [
+      "https://help.luma.com/p/send-limits",
+      "https://luma.com/pricing"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Deliverability monitoring and email block",
+    "description": "No cold lists. Warning at spam ≥0.025% or bounces ≥3%; suspension at ≥0.05% or ≥7% over 5 days. Appeals; registration keeps working.",
+    "role": "admin",
+    "tier": "free",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email relay only.",
+    "source_urls": [
+      "https://help.luma.com/p/email-consent-and-cold-emailing",
+      "https://help.luma.com/p/account-review-and-appeals"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Event Insights analytics",
+    "description": "Page views, live traffic, sources (ad click IDs, 24 h), top cities by IP, UTM sources, referrals, check-in and Zoom attendance. Registrations chart mobile only.",
+    "role": "organizer",
+    "tier": "free",
+    "p2p_difficulty": "needs-seeder",
+    "p2p_note": "Registration stats local; page views need a gateway (privacy-sensitive).",
+    "source_urls": [
+      "https://help.luma.com/p/event-insights"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Org-level insights",
+    "description": "Registration and attendance analytics across org calendars plus combined events feed and embed.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Aggregate replicated Autobases.",
+    "source_urls": [
+      "https://help.luma.com/p/organizations.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Audit logs and activity tracking",
+    "description": "All plans: per-guest timeline (source, inviter, status changes and actor, tickets, refunds, check-ins) and per-guest email delivered/opened/clicked status with Resend Confirmation. Plus: Calendar Activity Log. Enterprise: auth logs and retention.",
+    "role": "admin",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Signed append-only logs; email status needs a relay.",
+    "source_urls": [
+      "https://help.luma.com/p/audit-logs-and-activity-tracking.md",
+      "https://help.luma.com/p/email-delivery-open-troubleshooting"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Organizations (Enterprise)",
+    "description": "Container for calendars with org admins; holds SSO, CRM, org API keys, webhooks, insights, tags, combined embed. Set up by Luma.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Parent Autobase of calendar keys.",
+    "source_urls": [
+      "https://help.luma.com/p/organizations.md",
+      "https://help.luma.com/p/creating-a-calendar"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Custom domains",
+    "description": "Only an Enterprise security bullet mentions custom domains with TLS; no self-serve setup found.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "HTTP gateway with TLS.",
+    "source_urls": [
+      "https://help.luma.com/p/enterprise-security.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Custom sending domain",
+    "description": "Enterprise. Email from your domain via SES with DKIM (2 CNAMEs), DMARC recommended; From/Reply-To per calendar.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Email relay only.",
+    "source_urls": [
+      "https://help.luma.com/p/custom-sending-domain.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Luma Plus pricing and paywalled features",
+    "description": "Free: 5% fee, 500 sends/week, 3 admins. Plus: $59/mo billed annually, per calendar, not movable: 0% fee, 5,000 sends, add-ons, tax collection, check-in manager, custom URL, split names, 5 admins plus seats, Zapier, API, priority support, early access. Help pages also gate webhooks, GA, Meta pixel and Activity Log behind Plus.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Most gates cost nothing in P2P; sends, payments, integrations do.",
+    "source_urls": [
+      "https://luma.com/pricing",
+      "https://help.luma.com/p/luma-plus.md"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Luma Plus billing management",
+    "description": "Upgrade to annual, cancel (no refund), send add-ons, prorated seats, billing info, invoices. Subscription Lookup by card; disputes restrict the account until repaid plus $15.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Only if selling subscriptions.",
+    "source_urls": [
+      "https://help.luma.com/p/managing-luma-plus.md",
+      "https://help.luma.com/p/canceling-luma-plus.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Enterprise tier",
+    "description": "Custom pricing: organizations, OIDC SSO, audit logs, custom DPAs, security questionnaires, custom sending domain, CRM syncs, badge printing, ticket transfer, per-event tax, custom backgrounds, SLAs, dedicated support.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Mixed.",
+    "source_urls": [
+      "https://help.luma.com/p/enterprise-overview.md",
+      "https://luma.com/pricing"
+    ],
+    "verification": "corrected",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Single Sign-On (OIDC)",
+    "description": "Enterprise. OIDC only (Okta, Auth0, Google Workspace, Entra); DNS TXT domain verification; Off/Optional/Enforced.",
+    "role": "admin",
+    "tier": "paid",
+    "p2p_difficulty": "needs-server",
+    "p2p_note": "Needs a server attesting keys.",
+    "source_urls": [
+      "https://help.luma.com/p/sso.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Needs infrastructure"
+  },
+  {
+    "area": "platform",
+    "name": "Two-factor authentication",
+    "description": "TOTP on every sign-in except passkey; recovery by support review.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Could protect local key unlock.",
+    "source_urls": [
+      "https://help.luma.com/p/two-factor-authentication.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Passkeys",
+    "description": "WebAuthn on web and iOS; skips 2FA; confirms sensitive actions.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Could gate the local keystore.",
+    "source_urls": [
+      "https://help.luma.com/p/passkeys.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Active devices",
+    "description": "Device list with browser/OS, last active, IP location; sign out one or all. Web sessions 400 days.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Paired device keys; revoke by removing a writer.",
+    "source_urls": [
+      "https://help.luma.com/p/active-devices.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Confirm Access for sensitive actions",
+    "description": "Re-verify before exporting guest data, changing sign-in or payouts; new factors wait a few days.",
+    "role": "both",
+    "tier": "free",
+    "p2p_difficulty": "easy",
+    "p2p_note": "Local re-auth prompt.",
+    "source_urls": [
+      "https://help.luma.com/p/confirming-sensitive-actions.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Account review and appeals",
+    "description": "Automated ToS flagging, restricted actions until appeal; denied appeals final.",
+    "role": "admin",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Client-side blocklists or shared moderation feeds.",
+    "source_urls": [
+      "https://help.luma.com/p/account-review-and-appeals.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  },
+  {
+    "area": "platform",
+    "name": "Compliance and security posture",
+    "description": "SOC 2 Type II and SOC 3, DPA (GDPR, UK GDPR, CCPA), US-only AWS, AES-256 at rest, TLS 1.2+, pentest, bug bounty.",
+    "role": "admin",
+    "tier": "free",
+    "p2p_difficulty": "unclear",
+    "p2p_note": "Data lives on user devices; Noise transport and encrypted cores.",
+    "source_urls": [
+      "https://luma.com/security",
+      "https://help.luma.com/p/gdpr-security.md"
+    ],
+    "verification": "confirmed",
+    "bucket": "Later"
+  }
+]
