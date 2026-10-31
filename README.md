@@ -26,6 +26,7 @@ node apps/cli --store ./bob       # > open <link>   > rsvp Bob   > status   > qr
 ```
 
 Type `help` in the CLI for all commands (approvals, privacy modes, co-hosts, scanners, blasts).
+Add `--offline` to run a device with no networking, e.g. to simulate a door with no signal.
 
 ## Android APK
 

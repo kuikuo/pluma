@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Dev/demo CLI. Usage: node apps/cli --store ./alice
+// Dev/demo CLI. Usage: node apps/cli --store ./alice [--offline]
 const readline = require('readline')
 const { Pluma } = require('@pluma/core')
 
 const args = process.argv.slice(2)
-const storage = args[args.indexOf('--store') + 1] || './pluma.storage'
+const storage = args.includes('--store') ? args[args.indexOf('--store') + 1] : './pluma.storage'
+const offline = args.includes('--offline') // no networking: simulates a device without signal
 
 const HELP = `
   create <title> [capacity] [approval]   create an event (approval = "yes" to require it)
@@ -27,10 +28,10 @@ const HELP = `
   quit`
 
 async function main() {
-  const pluma = new Pluma(storage)
+  const pluma = new Pluma(storage, { swarm: !offline })
   await pluma.ready()
   let ev = null
-  console.log(`Pluma CLI — storage ${storage}. Type "help".`)
+  console.log(`Pluma CLI — storage ${storage}${offline ? ' (OFFLINE)' : ''}. Type "help".`)
 
   const use = (e) => {
     ev = e
