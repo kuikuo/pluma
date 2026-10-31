@@ -4,7 +4,7 @@ Static, zero-backend page that guests see when they tap a Pluma invite link: sho
 
 **Link format:** `https://<host>/#<64 lowercase hex event key>[.<preview>]`, where `<preview>` is base64url (no padding) of UTF-8 JSON `{"t":title,"s":startISO,"z":IANA tz,"l":location,"h":host name}` (all fields optional).
 
-**Deploy (GitHub Pages):** copy this folder's contents (plus `pluma.apk`) to the root of a Pages branch or `/docs` folder, then enable Pages in the repo settings. It also works from any static host or opened straight from disk (`file://`).
+**Deploy (GitHub Pages):** `.github/workflows/pages.yml` publishes this folder on every push to `main`. The Android download button links to the latest GitHub release asset `pluma.apk`. It also works from any static host or straight from disk (`file://`).
 
 **Privacy:** everything is in the URL fragment (after `#`), which browsers never send to the server, so the host learns nothing about the event or the guest.
 
