@@ -1,0 +1,11 @@
+Pluma
+Copyright 2026 the Pluma authors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes:
+- qrcode-generator by Kazuhiko Arase (MIT), vendored in apps/invite-page/vendor/
+  (licence text in apps/invite-page/vendor/LICENSE-qrcode-generator.txt)
+
+Luma is a trademark of its owner. Pluma is an independent, clean-room project and
+is not affiliated with or endorsed by Luma. No Luma code, copy or assets are used.

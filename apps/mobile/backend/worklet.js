@@ -1,7 +1,9 @@
 // Runs inside the Bare worklet on the phone. Hosts @pluma/core and answers
 // newline-delimited JSON requests from the React Native UI over IPC.
 /* global Bare, BareKit */
-const { Pluma } = require('../../../packages/core')
+const { Pluma, toICS, toCSV } = require('../../../packages/core')
+const b4a = require('b4a')
+const { idFor } = require('../../../packages/core/lib/apply')
 
 const { IPC } = BareKit
 const storage = (Bare.argv[0] || '.') + '/pluma'
@@ -36,6 +38,13 @@ async function summary(ev) {
 }
 
 // Names of guests whose ticket was scanned at more than one door.
+// Compact event preview carried in invite links (decoded by the invite web page).
+function preview(info, hosts) {
+  if (!info) return ''
+  const p = { t: info.title, s: info.start, z: info.timezone, l: info.location || undefined, h: hosts.join(', ') || undefined }
+  return b4a.toString(b4a.from(JSON.stringify(p)), 'base64url')
+}
+
 async function duplicateNames(ev) {
   const dups = await ev.duplicateScans()
   if (dups.length === 0) return []
@@ -87,6 +96,9 @@ const methods = {
       link: ev.link,
       info,
       role,
+      needsUpdate: await ev.needsUpdate(),
+      ticketTypes: await ev.ticketTypes(),
+      preview: preview(info, (await ev.hosts()).filter((h) => h.visible).map((h) => h.name).filter(Boolean)),
       mine: await ev.myStatus(),
       hosts: (await ev.hosts()).filter((h) => h.visible).map((h) => h.name).filter(Boolean),
       roster: (await ev.roster()).map((r) => r.name),
@@ -99,6 +111,17 @@ const methods = {
     }
   },
   async rsvp(link, details) { await (await open(link)).rsvp(details) },
+  async ics(link) {
+    const ev = await open(link)
+    return toICS(await ev.info(), { link: ev.link, uid: ev.link.slice(-64) })
+  },
+  async csv(link) {
+    const ev = await open(link)
+    const scanned = new Set((await ev.checkins()).map((c) => c.id))
+    const guests = await ev.guests()
+    const checkins = new Set(guests.filter((g) => scanned.has(idFor(ev.key, g.id))).map((g) => g.id))
+    return toCSV(guests, await ev.info(), checkins)
+  },
   async cancelRsvp(link) { await (await open(link)).cancelRsvp() },
   async ticketQR(link) { return (await open(link)).ticketQR() },
   async approve(link, id) { await (await open(link)).approve(id) },

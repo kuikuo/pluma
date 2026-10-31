@@ -6,9 +6,57 @@ import {
 import * as Clipboard from 'expo-clipboard'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import QRCode from 'react-native-qrcode-svg'
+import * as Notifications from 'expo-notifications'
+import * as Sharing from 'expo-sharing'
+import { File, Paths } from 'expo-file-system'
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
 import { call, onEvent } from './rpc'
 
-const LINK_RE = /pluma:\/\/event\/[0-9a-f]{64}/
+// Invite links are web pages (apps/invite-page) carrying the event key and a
+// preview in the URL fragment; the app also accepts raw pluma:// links.
+const INVITE_BASE = 'https://kuikuo.github.io/pluma/'
+const KEY_RE = /(?:pluma:\/\/event\/|#)([0-9a-f]{64})/
+function parseInvite(text) {
+  const m = KEY_RE.exec(text || '')
+  return m ? 'pluma://event/' + m[1] : null
+}
+function inviteUrl(link, preview) {
+  return INVITE_BASE + '#' + link.slice(-64) + (preview ? '.' + preview : '')
+}
+const LINK_RE = { exec: (text) => { const l = parseInvite(text); return l ? [l] : null } }
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false })
+})
+
+// Reminders are local notifications scheduled on the guest's phone: no push server.
+async function scheduleReminders(link, info, going) {
+  const ids = ['1d', '1h'].map((x) => link.slice(-16) + '-' + x)
+  for (const id of ids) await Notifications.cancelScheduledNotificationAsync(id).catch(() => {})
+  if (!going || info.cancelled || !(await Notifications.getPermissionsAsync()).granted) return
+  await Notifications.setNotificationChannelAsync('reminders', { name: 'Event reminders', importance: Notifications.AndroidImportance.HIGH })
+  const start = new Date(info.start).getTime()
+  const plan = [[ids[0], 86_400_000, 'tomorrow'], [ids[1], 3_600_000, 'in 1 hour']]
+  for (const [identifier, before, label] of plan) {
+    const when = start - before
+    if (when < Date.now() + 5000) continue
+    await Notifications.scheduleNotificationAsync({
+      identifier,
+      content: { title: info.title, body: `Starts ${label}${info.location ? ' · ' + info.location : ''}`, data: { link } },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(when), channelId: 'reminders' }
+    })
+  }
+}
+
+async function shareFile(name, text, mimeType) {
+  const f = new File(Paths.cache, name)
+  if (f.exists) f.delete()
+  f.create()
+  f.write(text)
+  await Sharing.shareAsync(f.uri, { mimeType, dialogTitle: name })
+}
+
+const safeName = (t) => (t || 'event').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').slice(0, 40) || 'event'
 const JOIN_PREFIX = 'pluma-join:'
 const ACCENT = '#5b3df5'
 
@@ -60,6 +108,7 @@ const STATUS_TEXT = {
   pending: 'Waiting for the organiser to approve',
   declined: 'Not approved',
   full: 'This event is full',
+  waitlist: "You're on the waitlist",
   closed: 'Registration is closed',
   cancelled: "You're not going",
   revoked: 'Your spot was cancelled by the host',
@@ -71,6 +120,7 @@ const HOST_STATUS = {
   pending: 'waiting for you',
   declined: 'declined',
   full: 'asked when full',
+  waitlist: 'on waitlist',
   closed: 'asked after closing',
   cancelled: 'cancelled',
   revoked: 'cancelled by host'
@@ -153,6 +203,11 @@ function Create({ go, back, link, info }) {
   const [capacity, setCapacity] = useState(editing && info.capacity !== null ? String(info.capacity) : '')
   const [requireApproval, setRequireApproval] = useState(editing ? !!info.requireApproval : false)
   const [mode, setMode] = useState(editing ? info.guestListMode : 'private')
+  const [types, setTypes] = useState(editing ? (info.ticketTypes || []).map((t) => ({ ...t, capacity: t.capacity === null ? '' : String(t.capacity) })) : [])
+  const [questions, setQuestions] = useState(editing ? (info.questions || []).map((q) => ({ ...q, options: (q.options || []).join(', ') })) : [])
+  const newId = (p) => p + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36)
+  const editType = (i, patch) => setTypes((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)))
+  const editQuestion = (i, patch) => setQuestions((qs) => qs.map((q, j) => (j === i ? { ...q, ...patch } : q)))
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -171,7 +226,12 @@ function Create({ go, back, link, info }) {
       description: description.trim(),
       capacity: capacity ? Number(capacity) : null,
       requireApproval,
-      guestListMode: mode
+      guestListMode: mode,
+      ticketTypes: types.filter((t) => t.name.trim()).map((t) => ({ id: t.id, name: t.name.trim(), capacity: t.capacity ? Number(t.capacity) : null, requireApproval: !!t.requireApproval })),
+      questions: questions.filter((q) => q.label.trim()).map((q) => ({
+        id: q.id, label: q.label.trim(), kind: q.kind, required: !!q.required,
+        options: q.kind === 'choice' ? q.options.split(',').map((o) => o.trim()).filter(Boolean) : []
+      }))
     }
     try {
       if (editing) {
@@ -207,7 +267,41 @@ function Create({ go, back, link, info }) {
         </View>
         <Text style={s.label}>Who can see the guest list?</Text>
         <Segmented value={mode} onChange={setMode} options={[['private', 'Only hosts'], ['selective', 'Guests (I pick)'], ['public', 'All guests']]} />
-        <View style={{ height: 14 }} />
+
+        <Text style={s.h2}>Ticket types</Text>
+        {types.length === 0 && <Text style={[s.muted, { marginBottom: 8 }]}>One general ticket. Add types for things like Speaker or Volunteer.</Text>}
+        {types.map((t, i) => (
+          <View key={t.id} style={s.card}>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 3 }}><Field label="Name" value={t.name} onChangeText={(v) => editType(i, { name: v })} placeholder="General" /></View>
+              <View style={{ flex: 2 }}><Field label="Capacity" value={t.capacity} onChangeText={(v) => editType(i, { capacity: v.replace(/\D/g, '') })} keyboardType="number-pad" placeholder="No limit" /></View>
+            </View>
+            <View style={[s.row, { marginBottom: 0 }]}>
+              <Text style={s.body}>I approve these guests</Text>
+              <Switch value={!!t.requireApproval} onValueChange={(v) => editType(i, { requireApproval: v })} />
+            </View>
+            {!editing && <Pressable onPress={() => setTypes((ts) => ts.filter((_, j) => j !== i))}><Text style={s.small}>Remove</Text></Pressable>}
+          </View>
+        ))}
+        <View style={{ height: 8 }} />
+        <Button title="+ Add ticket type" kind="secondary" onPress={() => setTypes((ts) => [...ts, { id: newId('t'), name: ts.length === 0 ? 'General' : '', capacity: '', requireApproval: false }])} />
+
+        <Text style={s.h2}>Questions for guests</Text>
+        {questions.map((q, i) => (
+          <View key={q.id} style={s.card}>
+            <Field label="Question" value={q.label} onChangeText={(v) => editQuestion(i, { label: v })} placeholder="Dietary needs?" />
+            <Segmented value={q.kind} onChange={(v) => editQuestion(i, { kind: v })} options={[['text', 'Text'], ['choice', 'Choice'], ['agree', 'Checkbox']]} />
+            {q.kind === 'choice' && <View style={{ marginTop: 10 }}><Field label="Options (comma separated)" value={q.options} onChangeText={(v) => editQuestion(i, { options: v })} placeholder="None, Vegetarian, Halal" /></View>}
+            <View style={[s.row, { marginTop: 10, marginBottom: 0 }]}>
+              <Text style={s.body}>Required</Text>
+              <Switch value={!!q.required} onValueChange={(v) => editQuestion(i, { required: v })} />
+            </View>
+            <Pressable onPress={() => setQuestions((qs) => qs.filter((_, j) => j !== i))}><Text style={s.small}>Remove</Text></Pressable>
+          </View>
+        ))}
+        <View style={{ height: 8 }} />
+        <Button title="+ Add question" kind="secondary" onPress={() => setQuestions((qs) => [...qs, { id: newId('q'), label: '', kind: 'text', options: '', required: false }])} />
+        <View style={{ height: 20 }} />
         {!editing && <Field label="Your name (shown as host)" value={name} onChangeText={setName} placeholder="Your name" />}
         {editing && <Text style={[s.muted, { marginBottom: 12 }]}>Guests see changes the next time their app syncs. Lowering capacity never cancels anyone automatically.</Text>}
         <Button title={busy ? (editing ? 'Saving…' : 'Publishing…') : (editing ? 'Save changes' : 'Publish')} onPress={publish} disabled={busy} />
@@ -235,22 +329,30 @@ function Ticket({ link }) {
   )
 }
 
-function RsvpSheet({ link, info, onDone }) {
+function RsvpSheet({ link, info, types, onDone }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [ticketType, setTicketType] = useState(types[0] ? types[0].id : null)
+  const [answers, setAnswers] = useState({})
   const [busy, setBusy] = useState(false)
   useEffect(() => { call('profile').then((p) => { setName(p.name); setEmail(p.email) }) }, [])
+  const questions = info.questions || []
+  const setAnswer = (id, v) => setAnswers((a) => ({ ...a, [id]: v }))
 
   const visibility = info.guestListMode === 'private'
-    ? 'Only the hosts will see your name and details.'
-    : 'Other guests will see your name. Only hosts see your email.'
+    ? 'Only the hosts will see your name, details and answers.'
+    : 'Other guests will see your name. Only hosts see your email and answers.'
 
   async function submit() {
     if (!name.trim()) return Alert.alert('Add your name so the host knows who’s coming')
+    for (const q of questions) {
+      const a = answers[q.id]
+      if (q.required && (q.kind === 'agree' ? a !== true : !a)) return Alert.alert('Please answer: ' + q.label)
+    }
     setBusy(true)
     try {
       await call('setProfile', { name: name.trim(), email: email.trim() })
-      await call('rsvp', link, { name: name.trim(), email: email.trim() || null })
+      await call('rsvp', link, { name: name.trim(), email: email.trim() || null, answers, ticketType })
       onDone()
     } catch (err) {
       Alert.alert('Could not send', err.message)
@@ -260,8 +362,42 @@ function RsvpSheet({ link, info, onDone }) {
 
   return (
     <View style={s.card}>
+      {types.length > 1 && (
+        <View style={{ marginBottom: 14 }}>
+          <Text style={s.label}>Ticket</Text>
+          {types.map((t) => (
+            <Pressable key={t.id} onPress={() => setTicketType(t.id)} style={[s.option, ticketType === t.id && s.optionActive]}>
+              <Text style={[s.body, ticketType === t.id && { color: ACCENT, fontWeight: '600' }]}>{t.name}</Text>
+              <Text style={s.muted}>{t.left === 0 ? 'Full — join the waitlist' : t.left !== null ? `${t.left} left` : ''}{t.requireApproval ? (t.left !== null ? ' · ' : '') + 'host approves' : ''}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
       <Field label="Your name" value={name} onChangeText={setName} placeholder="Name" />
       <Field label="Email (optional)" value={email} onChangeText={setEmail} placeholder="For the host only" keyboardType="email-address" autoCapitalize="none" />
+      {questions.map((q) => (
+        <View key={q.id} style={{ marginBottom: 14 }}>
+          {q.kind === 'agree' ? (
+            <View style={s.row}>
+              <Text style={[s.body, { flex: 1, marginRight: 10 }]}>{q.label}{q.required ? ' *' : ''}</Text>
+              <Switch value={answers[q.id] === true} onValueChange={(v) => setAnswer(q.id, v)} />
+            </View>
+          ) : q.kind === 'choice' ? (
+            <>
+              <Text style={s.label}>{q.label}{q.required ? ' *' : ''}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {q.options.map((o) => (
+                  <Pressable key={o} onPress={() => setAnswer(q.id, o)} style={[s.chip, answers[q.id] === o && s.chipActive]}>
+                    <Text style={[s.chipText, answers[q.id] === o && { color: '#fff' }]}>{o}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Field label={q.label + (q.required ? ' *' : '')} value={answers[q.id] || ''} onChangeText={(v) => setAnswer(q.id, v)} placeholder="Your answer" />
+          )}
+        </View>
+      ))}
       <Text style={[s.muted, { marginBottom: 10 }]}>{visibility}</Text>
       <Button title={busy ? 'Sending…' : 'Confirm'} onPress={submit} disabled={busy} />
     </View>
@@ -270,19 +406,42 @@ function RsvpSheet({ link, info, onDone }) {
 
 function GuestView({ d, link, refresh }) {
   const [rsvping, setRsvping] = useState(false)
+  const [remind, setRemind] = useState(null)
   const status = d.mine.status
   const canRsvp = status === 'none' || status === 'cancelled'
+  const going = status === 'approved'
+
+  useEffect(() => {
+    Notifications.getPermissionsAsync().then((p) => setRemind(p.granted))
+  }, [])
+  useEffect(() => {
+    scheduleReminders(link, d.info, going).catch(() => {})
+  }, [link, d.info.start, d.info.cancelled, d.info.title, going, remind])
+
+  async function turnOnReminders() {
+    const p = await Notifications.requestPermissionsAsync()
+    setRemind(p.granted)
+    if (!p.granted) Alert.alert('Reminders are off', 'You can allow notifications for Pluma in Android settings.')
+  }
 
   return (
     <>
       {status !== 'none' && <Text style={[s.status, status === 'approved' && { color: '#0a7d32' }]}>{STATUS_TEXT[status]}{d.mine.message ? ` — ${d.mine.message}` : ''}</Text>}
       {status === 'pending' && <Text style={s.muted}>We’ll keep trying in the background. You can close the app.</Text>}
+      {status === 'waitlist' && <Text style={s.muted}>{d.mine.position ? `You're number ${d.mine.position} in line. ` : ''}If a spot opens up, your ticket appears here automatically.</Text>}
       {status === 'approved' && !d.mine.ticket && <Text style={s.muted}>Your ticket is on its way — it arrives as soon as a host is online.</Text>}
       {d.mine.ticket && <Ticket link={link} />}
+      {(going || status === 'pending' || status === 'waitlist') && (
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, marginBottom: 6 }}>
+          <View style={{ flex: 1 }}><Button title="Add to calendar" kind="secondary" onPress={async () => shareFile(safeName(d.info.title) + '.ics', await call('ics', link), 'text/calendar')} /></View>
+          {going && remind === false && <View style={{ flex: 1 }}><Button title="Remind me" kind="secondary" onPress={turnOnReminders} /></View>}
+        </View>
+      )}
+      {going && remind && <Text style={[s.muted, { marginBottom: 8 }]}>🔔 We'll remind you a day and an hour before.</Text>}
       {canRsvp && !d.info.cancelled && (rsvping
-        ? <RsvpSheet link={link} info={d.info} onDone={() => { setRsvping(false); refresh() }} />
+        ? <RsvpSheet link={link} info={d.info} types={d.ticketTypes} onDone={() => { setRsvping(false); refresh() }} />
         : <Button title="I’m going" onPress={() => setRsvping(true)} />)}
-      {(status === 'approved' || status === 'pending') && (
+      {(status === 'approved' || status === 'pending' || status === 'waitlist') && (
         <View style={{ marginTop: 10 }}>
           <Button title="I can’t make it" kind="secondary" onPress={() => Alert.alert('Cancel your spot?', 'Your ticket will stop working.', [
             { text: 'Keep it' },
@@ -296,6 +455,15 @@ function GuestView({ d, link, refresh }) {
 
 function HostView({ d, link, refresh, go }) {
   const [blast, setBlast] = useState('')
+  const [keepOn, setKeepOn] = useState(false)
+  const typeNames = new Map(d.ticketTypes.map((t) => [t.id, t.name]))
+  const questions = d.info.questions || []
+  useEffect(() => () => deactivateKeepAwake('hosting'), [])
+  function toggleKeepOn(v) {
+    setKeepOn(v)
+    if (v) activateKeepAwakeAsync('hosting')
+    else deactivateKeepAwake('hosting')
+  }
   const guests = d.guests || []
   const counts = guests.reduce((a, g) => ({ ...a, [g.status]: (a[g.status] || 0) + 1 }), {})
   const over = new Set(d.overCapacity)
@@ -308,10 +476,17 @@ function HostView({ d, link, refresh, go }) {
     <>
       <View style={s.card}>
         <Text style={s.cardTitle}>Invite people</Text>
-        <View style={{ alignItems: 'center', padding: 10, backgroundColor: '#fff' }}><QRCode value={link} size={180} /></View>
-        <Button title="Share invite link" onPress={() => Share.share({ message: `You're invited to ${d.info.title}! Open in Pluma: ${link}` })} />
+        <View style={{ alignItems: 'center', padding: 10, backgroundColor: '#fff' }}><QRCode value={inviteUrl(link, d.preview)} size={200} /></View>
+        <Button title="Share invite link" onPress={() => Share.share({ message: `You're invited to ${d.info.title}! ${inviteUrl(link, d.preview)}` })} />
         <View style={{ height: 8 }} />
-        <Button title="Copy link" kind="secondary" onPress={() => Clipboard.setStringAsync(link)} />
+        <Button title="Copy link" kind="secondary" onPress={() => Clipboard.setStringAsync(inviteUrl(link, d.preview))} />
+        <View style={[s.row, { marginTop: 12, marginBottom: 0 }]}>
+          <View style={{ flex: 1, marginRight: 10 }}>
+            <Text style={s.body}>Keep sharing</Text>
+            <Text style={s.muted}>Keeps the screen on so guests can reach your event. Or add a co-host.</Text>
+          </View>
+          <Switch value={keepOn} onValueChange={toggleKeepOn} />
+        </View>
       </View>
 
       <View style={s.card}>
@@ -322,14 +497,16 @@ function HostView({ d, link, refresh, go }) {
         {over.size > 0 && <Text style={[s.status, { color: '#b42318' }]}>{over.size} {over.size === 1 ? 'guest' : 'guests'} over capacity. The most recent sign-ups are highlighted; cancel tickets to fit.</Text>}
         {d.duplicates.length > 0 && <Text style={[s.status, { color: '#b42318' }]}>{listNames(d.duplicates)} {d.duplicates.length === 1 ? 'was' : 'were'} checked in at two doors. Worth a look.</Text>}
         <View style={{ height: 6 }} />
+        {d.ticketTypes.length > 1 && <Text style={s.muted}>{d.ticketTypes.map((t) => `${t.name}: ${t.taken}${t.capacity !== null ? '/' + t.capacity : ''}`).join(' · ')}</Text>}
         {guests.length === 0 && <Text style={s.muted}>No one yet. Share the invite!</Text>}
         {guests.map((g) => (
           <View key={g.id} style={[s.guest, over.has(g.id) && { backgroundColor: '#fff1f0' }]}>
             <View style={{ flex: 1 }}>
               <Text style={s.body}>{g.name || 'Unknown'}{g.hidden ? ' (hidden)' : ''}</Text>
-              <Text style={s.muted}>{HOST_STATUS[g.status] || g.status}{g.email ? ` · ${g.email}` : ''}</Text>
+              <Text style={s.muted}>{HOST_STATUS[g.status] || g.status}{d.ticketTypes.length > 1 ? ` · ${typeNames.get(g.ticketType) || g.ticketType}` : ''}{g.email ? ` · ${g.email}` : ''}</Text>
+              {questions.length > 0 && g.answers && <Text style={[s.muted, { fontSize: 13 }]}>{questions.filter((q) => g.answers[q.id] !== undefined && g.answers[q.id] !== '').map((q) => `${q.label}: ${g.answers[q.id] === true ? 'yes' : g.answers[q.id]}`).join(' · ')}</Text>}
             </View>
-            {g.status === 'pending' || g.status === 'full' ? (
+            {g.status === 'pending' || g.status === 'full' || g.status === 'waitlist' ? (
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 <Pressable onPress={() => act(() => call('approve', link, g.id))}><Text style={s.action}>Approve</Text></Pressable>
                 <Pressable onPress={() => act(() => call('decline', link, g.id))}><Text style={[s.action, { color: '#b42318' }]}>Decline</Text></Pressable>
@@ -347,6 +524,7 @@ function HostView({ d, link, refresh, go }) {
         ))}
       </View>
 
+      {guests.length > 0 && <Button title="Export guest list (CSV)" kind="secondary" onPress={async () => shareFile(safeName(d.info.title) + '-guests.csv', await call('csv', link), 'text/csv')} />}
       <View style={s.card}>
         <Text style={s.cardTitle}>Who can see the guest list?</Text>
         <Segmented value={d.info.guestListMode} onChange={(m) => act(() => call('setMode', link, m))} options={[['private', 'Only hosts'], ['selective', 'I pick'], ['public', 'All guests']]} />
@@ -392,7 +570,7 @@ function Event({ link, justCreated, back, go }) {
   }, [link, refresh])
 
   useEffect(() => {
-    if (justCreated) Share.share({ message: `You're invited! Open in Pluma: ${link}` }).catch(() => {})
+    if (justCreated) Share.share({ message: `You're invited! ${inviteUrl(link)}` }).catch(() => {})
   }, [justCreated, link])
 
   if (!d || !d.info) {
@@ -407,6 +585,15 @@ function Event({ link, justCreated, back, go }) {
   }
 
   const manager = d.role === 'organiser' || d.role === 'manager'
+  if (d.needsUpdate) {
+    return (
+      <View style={[s.page, { flex: 1, justifyContent: 'center' }]}>
+        <Text style={s.h2}>{d.info.title}</Text>
+        <Text style={[s.body, { marginBottom: 16 }]}>This event was made with a newer version of Pluma. Update the app to see it and join.</Text>
+        <Button title="Back" kind="secondary" onPress={back} />
+      </View>
+    )
+  }
   return (
     <ScrollView contentContainerStyle={s.page}>
       <Pressable onPress={back}><Text style={s.back}>‹ Events</Text></Pressable>
@@ -609,6 +796,12 @@ const s = StyleSheet.create({
   segmentText: { color: ACCENT, fontWeight: '600', fontSize: 13 },
   guest: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#eee', gap: 8 },
   action: { color: ACCENT, fontWeight: '600', padding: 4 },
+  option: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 12, marginBottom: 8, backgroundColor: '#fff' },
+  optionActive: { borderColor: ACCENT, backgroundColor: '#f3f0ff' },
+  chip: { borderWidth: 1, borderColor: ACCENT, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 },
+  chipActive: { backgroundColor: ACCENT },
+  chipText: { color: ACCENT, fontWeight: '600' },
+  small: { color: '#b42318', fontWeight: '600', padding: 6 },
   scanTop: { position: 'absolute', top: 0, left: 0, right: 0, padding: 20, backgroundColor: 'rgba(0,0,0,0.45)' },
   scanResult: { position: 'absolute', left: 30, right: 30, bottom: 80, borderRadius: 18, padding: 20, alignItems: 'center' },
   scanResultText: { fontSize: 64, color: '#fff', fontWeight: '700' }

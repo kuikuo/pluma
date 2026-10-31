@@ -1,6 +1,7 @@
 {
   "name": "@pluma/core",
   "version": "0.0.1",
+  "license": "Apache-2.0",
   "main": "index.js",
   "scripts": {
     "test": "brittle-node test/*.js",
